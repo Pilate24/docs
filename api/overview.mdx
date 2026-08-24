@@ -1,5 +1,5 @@
 ---
-title: "GlobeTrotter REST API Reference"
+title: "GlobeTrotter REST API — Base URLs, Envelopes & Errors"
 sidebarTitle: "Overview"
 description: "Explore GlobeTrotter's REST API — base URL, standard response envelope, supported HTTP methods, and status codes for every endpoint."
 ---
@@ -14,8 +14,6 @@ All API endpoints are relative to the following base URL:
 |---|---|
 | Production | `https://your-domain.com/api` |
 | Local development | `http://localhost:3000/api` |
-
-All request bodies must be sent as JSON. Include the header `Content-Type: application/json` on every request that has a body.
 
 ## Response Envelope
 
@@ -70,7 +68,7 @@ Browse the full API reference by resource type:
 
 <CardGroup cols={2}>
   <Card title="Auth Endpoints" icon="lock" href="/api/endpoints/auth">
-    Sign in, sign out, and inspect your active session with NextAuth-backed routes.
+    Register, sign in, sign out, and inspect your active session via the auth API.
   </Card>
   <Card title="Trips" icon="map" href="/api/endpoints/trips">
     Create, read, update, and delete your multi-city trip itineraries.

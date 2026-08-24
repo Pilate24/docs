@@ -1,7 +1,7 @@
 ---
-title: "Sharing and Cloning Trips"
+title: "Sharing and Cloning Public GlobeTrotter Trips"
 sidebarTitle: "Sharing"
-description: "Learn how to publish GlobeTrotter trips as public pages with vanity URLs, share them on social media, and let other users clone your full itinerary."
+description: "Publish any GlobeTrotter trip as a public page with a vanity URL, share it on social media, and let other users clone your full itinerary in one click."
 ---
 
 GlobeTrotter lets you publish any trip as a public page accessible to anyone on the internet — no account required to view it. Once public, your trip lives at a vanity URL derived from its title, and any logged-in user can clone your full itinerary into their own account with a single click. This page covers how to make a trip public, what the public page shows, how sharing and cloning work, and how your privacy is protected.
@@ -19,7 +19,6 @@ By default, every trip you create is **private** — only you can see it. To sha
 
     ```http
     PATCH /api/trips/:id/visibility
-    Authorization: Bearer <token>
     Content-Type: application/json
 
     {
@@ -45,10 +44,10 @@ By default, every trip you create is **private** — only you can see it. To sha
 Once public, your trip is accessible at:
 
 ```text
-https://globetrotter.app/p/{slug}
+https://globetrotter.app/shared/{slug}
 ```
 
-For example: `https://globetrotter.app/p/summer-euro-trip-2026-a8f9`
+For example: `https://globetrotter.app/shared/summer-euro-trip-2026-a8f9`
 
 ---
 
@@ -89,9 +88,6 @@ From the share tray on any public trip page, you can distribute your itinerary t
   <Card title="WhatsApp" icon="whatsapp">
     Opens a WhatsApp message pre-loaded with your trip link.
   </Card>
-  <Card title="LinkedIn" icon="linkedin">
-    Opens a LinkedIn post composer with the trip URL attached.
-  </Card>
 </CardGroup>
 
 ---
@@ -102,7 +98,7 @@ Any logged-in GlobeTrotter user can clone a public trip into their own account. 
 
 <Steps>
   <Step title="Open the public trip page">
-    Navigate to the vanity URL of the trip you want to clone (e.g., `https://globetrotter.app/p/ultimate-japan-cherry-blossom-2026`).
+    Navigate to the shared URL of the trip you want to clone (e.g., `https://globetrotter.app/shared/ultimate-japan-cherry-blossom-2026`).
   </Step>
   <Step title="Click Clone This Trip">
     Click the **"Clone This Trip"** button in the page header. You must be logged in — if you aren't, GlobeTrotter prompts you to sign in or create an account first.
@@ -127,12 +123,12 @@ GlobeTrotter enforces strict access rules so your private trips stay private:
 
 | Scenario | Behaviour |
 |---|---|
-| Private trip accessed via vanity URL | Returns `404 Not Found` — no data is exposed |
+| Private trip accessed via shared URL | Returns `404 Not Found` — no data is exposed |
 | Private trip API request by non-owner | Returns `403 Forbidden` |
 | Public trip API request by anyone | Returns full read-only trip data |
 | Cloning attempt without authentication | Redirects to sign-in page |
 
-To make a previously public trip private again, toggle the **"Public"** switch back to off in Trip Settings or send `{ "isPublic": false }` to the visibility endpoint. The vanity URL immediately returns `404` and the trip is removed from any public listings.
+To make a previously public trip private again, toggle the **"Public"** switch back to off in Trip Settings or send `{ "isPublic": false }` to the visibility endpoint. The shared URL immediately returns `404` and the trip is removed from any public listings.
 
 ---
 
@@ -143,7 +139,7 @@ Every trip gets a unique URL-safe slug the moment it is created. The slug is der
 ```text
 Title: "Ultimate Japan Cherry Blossom 2026"
 Slug:  "ultimate-japan-cherry-blossom-2026-c3d7"
-URL:   https://globetrotter.app/p/ultimate-japan-cherry-blossom-2026-c3d7
+URL:   https://globetrotter.app/shared/ultimate-japan-cherry-blossom-2026-c3d7
 ```
 
 <Accordion title="How slugs are generated">

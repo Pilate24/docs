@@ -1,14 +1,14 @@
 ---
 title: "Deploy GlobeTrotter to Production"
 sidebarTitle: "Deployment"
-description: "Build GlobeTrotter for production and deploy to Vercel with a Supabase or Neon managed PostgreSQL database and cloud environment variables."
+description: "Build and deploy GlobeTrotter to Vercel with a managed PostgreSQL database. Covers environment variables, production migrations, and performance targets."
 ---
 
 The recommended production stack for GlobeTrotter is **Vercel** for Next.js hosting paired with **Supabase** or **Neon** for managed PostgreSQL. This combination gives you zero-config Next.js deployment, auto-scaled serverless API routes, and a managed database with built-in connection pooling — all available on free tiers for development and small production loads.
 
-## Production Build
+## Local Production Build
 
-Before deploying, verify that your app builds without errors locally:
+Before deploying, verify that your app builds and runs correctly on your machine:
 
 ```bash
 cd globetrotter-app
@@ -16,7 +16,13 @@ npm run build
 npm start
 ```
 
-Visit `http://localhost:3000` to confirm the production build runs correctly against your database before pushing to Vercel.
+Visit `http://localhost:3000` to confirm the production build connects to your database and loads without errors before pushing to Vercel.
+
+<Note>
+  The dev server starts with `npm run dev`. The build and dev commands both
+  use webpack explicitly (`next build --webpack` and `next dev --webpack`) to
+  match the webpack alias configuration in `next.config.js`.
+</Note>
 
 ## Deploy on Vercel
 
@@ -28,7 +34,7 @@ Visit `http://localhost:3000` to confirm the production build runs correctly aga
     Go to [vercel.com/new](https://vercel.com/new), sign in, and click **Import** next to your GlobeTrotter repository.
   </Step>
   <Step title="Set the root directory">
-    In the project configuration screen, set the **Root Directory** field to `globetrotter-app`. This tells Vercel where your Next.js app lives within the monorepo.
+    In the project configuration screen, set the **Root Directory** field to `globetrotter-app`. This tells Vercel where your Next.js app lives within the repository.
   </Step>
   <Step title="Add environment variables">
     Expand the **Environment Variables** section and add each of the following before clicking Deploy:
@@ -37,21 +43,21 @@ Visit `http://localhost:3000` to confirm the production build runs correctly aga
     |---|---|
     | `NEXTAUTH_URL` | Your Vercel deployment URL (e.g., `https://globetrotter.vercel.app`) |
     | `DATABASE_URL` | Supabase or Neon connection string |
-    | `NEXTAUTH_SECRET` | Randomly generated 32+ character secret |
+    | `NEXTAUTH_SECRET` | Randomly generated 32+ character secret (`openssl rand -base64 32`) |
     | `GOOGLE_CLIENT_ID` | *(Optional)* Google OAuth client ID |
     | `GOOGLE_CLIENT_SECRET` | *(Optional)* Google OAuth client secret |
   </Step>
   <Step title="Click Deploy">
-    Click the **Deploy** button. Vercel installs dependencies, runs `next build`, and deploys your app to a global CDN. The first build typically takes 2–3 minutes.
+    Click the **Deploy** button. Vercel installs dependencies, runs `npm run build`, and deploys your app to a global CDN. The first build typically takes 2–3 minutes.
   </Step>
   <Step title="Run production migrations">
-    After the first deploy succeeds, run migrations against your production database from your local machine. Set `DATABASE_URL` to the production connection string in your environment, then run:
+    After the first deploy succeeds, apply migrations to your production database from your local machine. Point `DATABASE_URL` at the production connection string, then run:
 
     ```bash
     npx prisma migrate deploy
     ```
 
-    Unlike `migrate dev`, `migrate deploy` applies existing migration files without generating new ones — safe for production use.
+    Unlike `migrate dev`, `migrate deploy` applies existing migration files without generating new ones — safe for production databases.
   </Step>
   <Step title="Seed initial data">
     Run the seed script once to populate destinations, activities, and demo accounts in your production database:
@@ -60,9 +66,16 @@ Visit `http://localhost:3000` to confirm the production build runs correctly aga
     npx prisma db seed
     ```
 
-    Only run this once. Running it multiple times against the same database will create duplicate records.
+    Run this only once per database. Running it multiple times against the same database will create duplicate records.
   </Step>
 </Steps>
+
+<Warning>
+  Set `NEXTAUTH_URL` to your exact production domain — including the protocol
+  and without a trailing slash. If this value mismatches the domain your
+  users visit, OAuth redirects will fail and session cookies will not be set
+  correctly.
+</Warning>
 
 ## Performance Targets
 
@@ -70,16 +83,14 @@ GlobeTrotter is designed to meet the following non-functional performance benchm
 
 | Metric | Target |
 |---|---|
-| LCP (Largest Contentful Paint) | < 1.5 seconds on 4G |
-| API Response Time | < 200ms at P95 |
+| LCP (Largest Contentful Paint) | < 1.5 seconds on standard 4G |
+| API Response Time | < 200 ms at P95 |
 | Browser Support | Chrome ≥ 110, Firefox ≥ 110, Safari ≥ 16, Edge ≥ 110 |
 
 Monitor Core Web Vitals in the Vercel dashboard under **Analytics** to track LCP and other metrics against these targets after launch.
 
-<Warning>
-  Set `NEXTAUTH_URL` to your exact production domain — including the protocol and without a trailing slash. If this value mismatches the domain your users actually visit, OAuth redirects will break and session cookies will not be set correctly.
-</Warning>
-
 <Tip>
-  Supabase and Neon both offer free tiers with sufficient compute and storage for development and small production workloads. You can upgrade to a paid plan as traffic grows without changing your connection string format.
+  Supabase and Neon both offer free tiers with sufficient compute and storage
+  for development and small production workloads. You can upgrade to a paid
+  plan as traffic grows without changing your connection string format.
 </Tip>

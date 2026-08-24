@@ -1,10 +1,10 @@
 ---
-title: "Search and Discover Destinations"
+title: "Discover and Search Travel Destinations — GlobeTrotter"
 sidebarTitle: "City Discovery"
-description: "Browse GlobeTrotter's curated catalogue of 20+ global destinations, filter by continent and cost index, and add cities to your itinerary in one click."
+description: "Browse GlobeTrotter's curated catalogue of global destinations, filter by continent and cost index, and add cities to your itinerary with a single click."
 ---
 
-GlobeTrotter's City Discovery engine lets you search and filter a curated catalogue of 20+ global destinations, explore cost information and popularity scores, and add cities directly to your itinerary — all without leaving the app. Whether you are building a trip from scratch or looking for inspiration, City Discovery is your starting point.
+GlobeTrotter's City Discovery engine lets you search and filter a curated catalogue of global destinations, explore average daily cost information, and add cities directly to your itinerary — all without leaving the app. Whether you are building a trip from scratch or looking for inspiration, City Discovery is your starting point.
 
 ## Accessing City Discovery
 
@@ -17,13 +17,13 @@ You can reach the City Discovery catalogue from two entry points:
 
 ## Searching for Destinations
 
-Type any city or country name into the search bar at the top of the catalogue. Results update in real time as you type, matching against both city names and country names. For example, typing `"Japan"` surfaces Tokyo alongside any other Japanese cities in the catalogue.
+Type any city or country name into the search bar at the top of the catalogue. Results update in real time as you type, matching against both city names and country names. For example, typing `Japan` surfaces Tokyo alongside any other Japanese cities in the catalogue.
 
 ---
 
 ## Filtering the Catalogue
 
-Use the three filter controls to narrow results to destinations that match your trip profile:
+Use the two filter controls alongside the search bar to narrow results to destinations that match your trip profile:
 
 <AccordionGroup>
   <Accordion title="Continent">
@@ -41,20 +41,17 @@ Use the three filter controls to narrow results to destinations that match your 
   <Accordion title="Cost Index">
     Filter by the destination's cost tier. GlobeTrotter assigns every city one of three cost index ratings:
 
-    | Symbol | Cost Index | Avg Daily Cost |
+    | Value | Label | Avg Daily Cost |
     |---|---|---|
-    | `$` | **BUDGET** | Under $80 / day |
-    | `$$` | **MODERATE** | $80 – $200 / day |
-    | `$$$` | **LUXURY** | $200+ / day |
+    | `BUDGET` | Budget ($) | Under $80 / day |
+    | `MODERATE` | Moderate ($$) | $80 – $200 / day |
+    | `LUXURY` | Luxury ($$$) | $200+ / day |
 
     Select **All Budgets** (the default) to see cities across all tiers.
   </Accordion>
-  <Accordion title="Popularity">
-    Filter by popularity score to surface only the highest-rated destinations. Select **Top Rated (4.5+)** to see cities that consistently rank among travellers' favourites.
-  </Accordion>
 </AccordionGroup>
 
-You can combine all three filters simultaneously — for example, **Asia** + **BUDGET** + **Top Rated** to find the best-value high-popularity cities in Asia.
+You can combine both filters simultaneously — for example, **Asia** + **BUDGET** to find the best-value cities in Asia.
 
 ---
 
@@ -70,38 +67,33 @@ Each result in the catalogue is displayed as a card with the following informati
     The estimated average spend per day for a typical traveller, displayed as `~$X/day` on the card image.
   </Card>
   <Card title="Cost Index Rating" icon="tag">
-    The `$` / `$$` / `$$$` symbol indicating whether the city is Budget, Moderate, or Luxury.
+    The `BUDGET`, `MODERATE`, or `LUXURY` tier indicating the city's overall price level.
   </Card>
-  <Card title="Popularity Score" icon="star">
-    A score out of 10 reflecting how frequently this destination is added to itineraries on GlobeTrotter.
+  <Card title="Country" icon="flag">
+    The country the city belongs to, shown as a label beneath the city name.
   </Card>
 </CardGroup>
 
 ---
 
-## Actions on a City Card
+## Adding a City to Your Itinerary
 
-Each city card exposes two primary actions:
-
-### Add to Itinerary
-
-Click **Add to Itinerary** on any city card to start adding that destination to a trip:
+Click **Add to Itinerary** on any city card to add that destination to a trip:
 
 <Steps>
   <Step title="Click Add to Itinerary">
-    The button is located at the bottom of every city card. Clicking it selects that city and pre-fills the Itinerary Builder's city search field.
+    The button is located at the bottom of every city card. Clicking it selects that city and opens the stop configuration form in the Itinerary Builder.
   </Step>
-  <Step title="Choose your trip">
-    If you have multiple trips, a prompt asks you to select which trip to add this city to.
+  <Step title="Set your stay dates">
+    Enter the **Arrival Date** and **Departure Date** for this stop. Both dates must fall within your trip's overall date range.
   </Step>
-  <Step title="Complete the stop details">
-    The Itinerary Builder opens with the city already pre-filled. Set the arrival and departure dates, transport mode, and costs, then click **Add to Itinerary** to confirm.
+  <Step title="Choose transport mode and costs">
+    Select the **Transport Mode** to reach this city (`FLIGHT`, `TRAIN`, `BUS`, `DRIVE`, `FERRY`, or `NONE`) and enter the transport cost and nightly accommodation rate.
+  </Step>
+  <Step title="Confirm the stop">
+    Click **Add to Itinerary** in the stop form to save the city to your route. The Budget Engine updates immediately to reflect the new costs.
   </Step>
 </Steps>
-
-### Explore City
-
-Click **Explore City** to open the full city detail page. This page lists all activities available for that destination, grouped by category, with ratings, durations, and costs — so you can plan your days before committing to a stop.
 
 ---
 
@@ -115,8 +107,42 @@ Use this table as a quick reference when planning your overall trip budget:
 | `$$` | **MODERATE** | $80 – $200 | Mid-range hotels, restaurants, paid tours |
 | `$$$` | **LUXURY** | $200+ | 4–5 star hotels, fine dining, premium experiences |
 
+---
+
+## Destination Data via API
+
+You can query the destination catalogue programmatically using the destinations endpoints:
+
+```http
+GET /api/destinations
+```
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "1",
+      "name": "Paris",
+      "country": "France",
+      "continent": "Europe",
+      "costIndex": "MODERATE",
+      "avgDailyCost": 150
+    }
+  ],
+  "message": "Destinations retrieved successfully",
+  "error": null
+}
+```
+
+Fetch a single destination by ID:
+
+```http
+GET /api/destinations/:id
+```
+
 <Info>
-  The catalogue currently covers 20+ major global cities across 6 continents. New destinations are added regularly by the GlobeTrotter platform team. If you would like to request a specific city be added to the catalogue, contact support at **support@globetrotter.app**.
+  The catalogue covers major global cities across all 6 continents. New destinations are added regularly by the GlobeTrotter platform team. If you would like to request a specific city be added to the catalogue, contact support at **support@globetrotter.app**.
 </Info>
 
 ---
@@ -127,7 +153,7 @@ You can bookmark any city to your personal Bucket List without immediately addin
 
 <Steps>
   <Step title="Open the city detail page">
-    Click **Explore City** on the destination card.
+    Click the city name to open the destination detail view.
   </Step>
   <Step title="Click the bookmark icon">
     Click the **bookmark** icon in the city detail header. The city is saved to your **Saved Destinations** list in your profile.

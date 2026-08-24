@@ -1,7 +1,7 @@
 ---
-title: "How to Contribute to GlobeTrotter"
+title: "Contributing to GlobeTrotter"
 sidebarTitle: "Contributing"
-description: "Step-by-step guide to the Git workflow, feature development process, adding API endpoints, and commit message standards for GlobeTrotter."
+description: "Git workflow, feature development steps, adding API endpoints, commit message conventions, and seed data guidelines for GlobeTrotter contributors."
 ---
 
 GlobeTrotter welcomes contributions — from bug fixes and performance improvements to new destinations, activities, and full features. This guide walks you through the development workflow and the correct way to add new functionality so your changes integrate smoothly with the rest of the codebase.
@@ -13,7 +13,8 @@ Before contributing, make sure you have:
 <CardGroup cols={3}>
   <Card title="Local setup complete" icon="circle-check">
     GlobeTrotter runs locally with a connected PostgreSQL database and a
-    seeded dataset. Follow the [Local Setup](/local-setup) guide first.
+    seeded dataset. Follow the [Database Setup](/configuration/database-setup)
+    guide first.
   </Card>
   <Card title="Coding standards read" icon="book-open">
     Familiarise yourself with the [Coding Standards](/development/coding-standards)
@@ -38,8 +39,8 @@ Before contributing, make sure you have:
     ```
   </Step>
   <Step title="Create a feature branch">
-    Always branch off `develop`, never off `main`. Use the `feat/` prefix for
-    new features and `fix/` for bug fixes:
+    Always branch off `develop`, never directly off `main`. Use the `feat/`
+    prefix for new features and `fix/` for bug fixes:
 
     ```bash
     # New feature
@@ -90,7 +91,7 @@ Before contributing, make sure you have:
 
 ## Conventional Commits
 
-GlobeTrotter uses the [Conventional Commits](https://www.conventionalcommits.org/) format. This makes the git log scannable and enables automated changelog generation.
+GlobeTrotter uses the [Conventional Commits](https://www.conventionalcommits.org/) format. This keeps the git log scannable and enables automated changelog generation.
 
 | Type | When to Use | Example |
 |---|---|---|
@@ -100,7 +101,7 @@ GlobeTrotter uses the [Conventional Commits](https://www.conventionalcommits.org
 | `docs` | Documentation changes | `docs(readme): add architecture diagram` |
 | `seed` | Seed data changes | `seed(db): add 5 new Asian destinations` |
 | `refactor` | Code restructure — no behavior change | `refactor(budget): extract cost helpers to lib` |
-| `chore` | Tooling, config, dependency updates | `chore(deps): upgrade prisma to 5.x` |
+| `chore` | Tooling, config, dependency updates | `chore(deps): upgrade prisma to latest` |
 
 <Tip>
   Keep the subject line under 72 characters and write it in the imperative
@@ -111,14 +112,14 @@ GlobeTrotter uses the [Conventional Commits](https://www.conventionalcommits.org
 
 <Steps>
   <Step title="Create the database migration">
-    If your feature requires new tables or columns, create a Prisma migration:
+    If your feature requires new tables or columns, update `prisma/schema.prisma`
+    with your new models and then create a migration:
 
     ```bash
     npx prisma migrate dev --name your-feature-name
     ```
 
-    Update `prisma/schema.prisma` with your new models, then regenerate the
-    Prisma client:
+    After the migration runs, regenerate the Prisma client:
 
     ```bash
     npx prisma generate
@@ -171,7 +172,7 @@ GlobeTrotter uses the [Conventional Commits](https://www.conventionalcommits.org
     ```
   </Step>
   <Step title="Update the navigation">
-    Add a navigation entry for your new page in `src/components/layout/` so
+    Add a navigation entry for your new page in `src/components/` so
     users can reach it from the sidebar or top navigation bar.
   </Step>
 </Steps>
@@ -239,8 +240,14 @@ Adding new destinations or activities is one of the highest-impact contributions
 - Add at least three activities per new destination, spanning different `category` values (`SIGHTSEEING`, `FOOD`, `CULTURE`, etc.).
 - Use the commit type `seed(db):` for these changes.
 
+After modifying `prisma/seed.ts`, re-run the seed script to verify it works:
+
+```bash
+npx prisma db seed
+```
+
 <Warning>
   Never hard-code UUIDs in seed data. Let the database generate them with
-  `uuid_generate_v4()` or rely on Prisma's default `cuid()` / `uuid()`
-  generators so the seed script remains idempotent across environments.
+  Prisma's default `cuid()` or `uuid()` generators so the seed script
+  remains consistent across environments.
 </Warning>

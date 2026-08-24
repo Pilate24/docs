@@ -1,10 +1,10 @@
 ---
-title: "How the Budget Engine Calculates Costs"
+title: "How GlobeTrotter's Budget Engine Calculates Trip Costs"
 sidebarTitle: "Budget Engine"
-description: "Understand how GlobeTrotter automatically aggregates lodging, transport, activity, and food costs into a single real-time financial summary for your trip."
+description: "Learn how GlobeTrotter aggregates nightly lodging, transport, activity fees, and a $50/day food estimate into a unified real-time financial summary."
 ---
 
-GlobeTrotter's budget engine automatically aggregates every cost across all your stops and activities into a single, unified financial summary — no manual spreadsheets required. Every time you add a city stop, log an accommodation cost, schedule an activity, or record a transport leg, the engine recalculates your totals, category breakdowns, and budget variance in real time. This page explains exactly how those calculations work.
+GlobeTrotter's budget engine automatically aggregates every cost across all your stops and activities into a single, unified financial summary — no manual spreadsheets required. Every time you add a city stop, log a nightly accommodation rate, schedule an activity, or record a transport leg, the engine recalculates your totals, category breakdowns, and budget variance in real time. This page explains exactly how those calculations work.
 
 ## Cost Categories
 
@@ -12,13 +12,13 @@ The budget engine tracks four distinct cost categories. Each category is sourced
 
 | Category | Source | Notes |
 |---|---|---|
-| **Lodging** | `accommodationCost` per stop | Flat total cost entered per city stop |
+| **Lodging** | `accommodationCost` (per night) × nights per stop | Enter the nightly rate for each stop; the engine multiplies by the number of nights automatically |
 | **Transport** | `transportCost` per stop | Per-leg cost for the transport into that city |
 | **Activities** | `customCost` or `estimatedCost` per scheduled activity | `customCost` takes priority when set; otherwise `estimatedCost` is used |
-| **Food** | $50/day flat rate per destination day | Auto-calculated based on nights at each stop |
+| **Food** | $50/day flat rate per destination day | Auto-calculated based on days at each stop |
 
 <Tip>
-The $50/day food estimate is a default placeholder to give your budget a realistic baseline. You can override it at any time by adding explicit `FOOD` expense records via the expense API — those records replace the flat-rate estimate in your totals.
+The $50/day food estimate gives your budget a realistic baseline from the moment you add a stop. To adjust food spending for a specific city, add a manual expense entry in that category — it will appear as a separate line item alongside the flat-rate estimate.
 </Tip>
 
 ---
@@ -33,7 +33,10 @@ The engine derives all financial metrics from the four categories above. Here is
 Total Cost = Lodging + Transport + Activities + Food
 ```
 
-The sum of all `accommodationCost` values across stops, all `transportCost` values across stops, all activity costs (using `customCost` where set, otherwise `estimatedCost`), and the auto-calculated food estimate ($50 × total destination days).
+- **Lodging** — sum of `(accommodationCost × nights)` for every stop
+- **Transport** — sum of all `transportCost` values across stops
+- **Activities** — sum of activity costs (using `customCost` where set, otherwise `estimatedCost`)
+- **Food** — `$50 × total destination days` across all stops
 
 ### Average Cost Per Day
 
@@ -41,7 +44,7 @@ The sum of all `accommodationCost` values across stops, all `transportCost` valu
 Average Cost/Day = Total Cost ÷ Total Trip Days
 ```
 
-`Total Trip Days` is calculated as `(endDate − startDate) + 1`.
+`Total Trip Days` is calculated as the sum of days spent across all stops.
 
 ### Budget Variance
 
@@ -51,14 +54,6 @@ Budget Variance = Target Budget − Total Cost
 
 - A **positive** variance means you are under budget — money to spare.
 - A **negative** variance means you are over budget — costs exceed your target.
-
-### Daily Burn Rate
-
-```text
-Daily Burn Rate = [ { date, total } for each day of the trip ]
-```
-
-Each entry in the daily burn rate array represents the sum of all costs attributable to a specific calendar day. Activity costs are assigned to their `scheduledDate`; accommodation and transport costs for a stop are distributed evenly across the stop's nights.
 
 ---
 
@@ -71,10 +66,10 @@ GlobeTrotter renders three visual components to help you understand your financi
     A Recharts donut chart showing the percentage breakdown of Lodging, Transport, Activities, and Food across your total estimated cost.
   </Card>
   <Card title="Daily Spend Velocity" icon="chart-bar">
-    A bar chart plotting daily spend totals across every day of your trip. Days that exceed your daily target threshold are highlighted as over-budget.
+    A bar chart plotting daily spend totals across every day of your trip, so you can see at a glance which days are heaviest on your wallet.
   </Card>
   <Card title="Budget Variance Pill" icon="gauge">
-    A status badge showing your current variance in currency. Displayed in green when under budget and red when over budget.
+    A status badge showing your current variance in your trip currency. Displayed in green when under budget and red when over budget.
   </Card>
 </CardGroup>
 

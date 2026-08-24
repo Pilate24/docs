@@ -1,30 +1,30 @@
 ---
-title: "Admin API — Platform Analytics and Management"
+title: "Admin API — Platform-Wide Metrics and Trip Management"
 sidebarTitle: "Admin"
-description: "Access platform-wide KPI metrics and audit trip records with GlobeTrotter's admin-only API endpoints, restricted to ADMIN-role accounts."
+description: "Access platform-wide KPI metrics and paginated trip records with GlobeTrotter's admin-only API endpoints, restricted to ADMIN-role accounts."
 ---
 
-The Admin API provides platform-wide analytics and trip management tools. All endpoints under `/api/admin/*` require the authenticated user to have the `ADMIN` role — the role is checked server-side on every request via `getServerSession`. Regular `USER`-role accounts receive an HTTP `403` response regardless of whether they supply a valid session.
+The Admin API surfaces platform-wide analytics and trip management data. Every endpoint under `/api/admin/*` requires the requesting account to hold the `ADMIN` role — this check is enforced server-side on every request. Regular `USER`-role accounts receive an HTTP `403` response regardless of whether they supply a valid session.
 
 <Warning>
-  These endpoints are restricted to ADMIN-role accounts. Do not expose admin API calls in end-user-facing code, client-side scripts, or public-facing pages. Treat admin responses as sensitive operational data.
+  These endpoints are restricted to ADMIN-role accounts only. Do not call admin API endpoints from end-user-facing code, client-side components, or public-facing pages. Treat all admin responses as sensitive operational data and handle them accordingly.
 </Warning>
 
 ---
 
 ## GET /api/admin/metrics
 
-Return platform-wide KPI metrics for the GlobeTrotter dashboard. Use this endpoint to power analytics charts, usage summaries, and growth reporting.
+Return platform-wide KPI metrics. Use this endpoint to power analytics dashboards, usage summaries, and growth trend charts.
 
 ### Authentication
 
-Requires an active session with `role === 'ADMIN'`. Use the demo admin account (`admin@globetrotter.com` / `password123`) for local development.
+Requires an active session for an account with the `ADMIN` role. Use the demo admin account (`admin@globetrotter.com` / `password123`) for local development and testing.
 
 ### Example Request
 
 ```http
 GET /api/admin/metrics
-Cookie: next-auth.session-token=<admin-session>
+Cookie: next-auth.session-token=<admin-session-token>
 ```
 
 ### Response Fields
@@ -34,22 +34,22 @@ Cookie: next-auth.session-token=<admin-session>
 </ResponseField>
 
 <ResponseField name="activeTrips" type="number">
-  Count of trips currently in `UPCOMING` or `ONGOING` status across all users.
+  Count of trips currently in `UPCOMING` or `ONGOING` status across all user accounts.
 </ResponseField>
 
 <ResponseField name="avgStopsPerTrip" type="number">
-  The mean number of city stops across all trips on the platform. Useful for understanding typical itinerary complexity.
+  Mean number of city stops per trip across all trips on the platform. Reflects typical itinerary complexity.
 </ResponseField>
 
 <ResponseField name="totalTrips" type="number">
-  Total number of trips ever created on the platform, across all statuses (`DRAFT`, `UPCOMING`, `ONGOING`, `COMPLETED`).
+  Total number of trips ever created on the platform, across all statuses: `DRAFT`, `UPCOMING`, `ONGOING`, and `COMPLETED`.
 </ResponseField>
 
 <ResponseField name="trendingDestinations" type="array">
-  Top destinations ranked by usage count — how many trips include a stop at that destination.
+  Top destinations ranked by how many trips include a stop at that location.
 
   <ResponseField name="trendingDestinations[].name" type="string">
-    Display name of the destination (city or region).
+    Display name of the destination city or region.
   </ResponseField>
 
   <ResponseField name="trendingDestinations[].tripCount" type="number">
@@ -61,7 +61,7 @@ Cookie: next-auth.session-token=<admin-session>
   Daily new-user signup counts for the last 30 calendar days, ordered chronologically.
 
   <ResponseField name="signupTrend[].date" type="string">
-    ISO 8601 date string (`YYYY-MM-DD`) for the day.
+    ISO 8601 date string (`YYYY-MM-DD`) representing the day.
   </ResponseField>
 
   <ResponseField name="signupTrend[].count" type="number">
@@ -75,17 +75,18 @@ Cookie: next-auth.session-token=<admin-session>
 {
   "success": true,
   "data": {
-    "totalUsers": 12450,
-    "activeTrips": 3820,
-    "avgStopsPerTrip": 4.2,
-    "totalTrips": 18000,
+    "totalUsers": 5820,
+    "activeTrips": 1430,
+    "avgStopsPerTrip": 3.8,
+    "totalTrips": 9200,
     "trendingDestinations": [
-      { "name": "Tokyo", "tripCount": 1240 },
-      { "name": "Paris", "tripCount": 1100 }
+      { "name": "Tokyo", "tripCount": 640 },
+      { "name": "Paris", "tripCount": 510 },
+      { "name": "New York", "tripCount": 390 }
     ],
     "signupTrend": [
-      { "date": "2026-05-01", "count": 87 },
-      { "date": "2026-05-02", "count": 104 }
+      { "date": "2026-05-01", "count": 42 },
+      { "date": "2026-05-02", "count": 57 }
     ]
   },
   "message": "Metrics retrieved successfully",
@@ -98,7 +99,7 @@ Cookie: next-auth.session-token=<admin-session>
 | Status | Meaning |
 |--------|---------|
 | `200`  | Success — returns the full platform metrics object |
-| `401`  | No valid session — sign in before calling this endpoint |
+| `401`  | No valid session — sign in with an ADMIN account before calling this endpoint |
 | `403`  | Authenticated but the account does not have the `ADMIN` role |
 | `500`  | Internal server error |
 
@@ -106,35 +107,35 @@ Cookie: next-auth.session-token=<admin-session>
 
 ## GET /api/admin/trips
 
-Return a paginated list of all trips across every user account for audit and moderation purposes.
+Return a paginated list of all trips across every user account on the platform. Use this endpoint for auditing, moderation, or support workflows.
 
 ### Authentication
 
-Requires an active session with `role === 'ADMIN'`.
+Requires an active session with the `ADMIN` role.
 
 ### Query Parameters
 
 <ParamField query="page" type="integer" default="1">
-  Page number to retrieve. Combined with `limit` to calculate the `OFFSET` applied to the query.
+  Page number to retrieve. Use together with `limit` to navigate through large result sets.
 </ParamField>
 
 <ParamField query="limit" type="integer" default="20">
-  Maximum number of trip records to return per page.
+  Maximum number of trip records to return per page. Accepted range: 1–100.
 </ParamField>
 
 <ParamField query="search" type="string">
-  Free-text search applied against trip titles and owner email addresses. Partial matches are supported.
+  Free-text filter applied against trip titles and owner email addresses. Partial matches are supported.
 </ParamField>
 
 <ParamField query="status" type="string">
-  Filter results to trips in a specific status. Accepted values: `DRAFT`, `UPCOMING`, `ONGOING`, `COMPLETED`.
+  Restrict results to trips in a specific status. Accepted values: `DRAFT`, `UPCOMING`, `ONGOING`, `COMPLETED`.
 </ParamField>
 
 ### Example Request
 
 ```http
 GET /api/admin/trips?page=1&limit=20&status=DRAFT&search=euro
-Cookie: next-auth.session-token=<admin-session>
+Cookie: next-auth.session-token=<admin-session-token>
 ```
 
 ### Example Response
@@ -145,14 +146,16 @@ Cookie: next-auth.session-token=<admin-session>
   "data": {
     "trips": [
       {
-        "id": "uuid",
+        "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
         "title": "Eurotrip 2026",
-        "userEmail": "user@example.com",
+        "userEmail": "traveler@example.com",
         "status": "DRAFT",
-        "stopCount": 4
+        "isPublic": false,
+        "stopCount": 4,
+        "createdAt": "2026-04-15T10:30:00Z"
       }
     ],
-    "total": 18000,
+    "total": 214,
     "page": 1,
     "limit": 20
   },
@@ -165,28 +168,28 @@ Cookie: next-auth.session-token=<admin-session>
 
 | Status | Meaning |
 |--------|---------|
-| `200`  | Success — returns the paginated trip list and metadata |
+| `200`  | Success — returns the paginated trip list and pagination metadata |
 | `401`  | No valid session |
 | `403`  | Authenticated but not an `ADMIN`-role account |
 | `500`  | Internal server error |
 
 <Info>
-  The `total` field in the response reflects the count of all matching records before pagination, not the number of items in the current page. Use `Math.ceil(total / limit)` to calculate the total page count in a UI.
+  The `total` field reflects the full count of matching records before pagination is applied — not the number of items returned on the current page. To determine the total number of pages, divide `total` by `limit` and round up.
 </Info>
 
 ### Trip Status Reference
 
 <Tabs>
   <Tab title="DRAFT">
-    The trip is being planned. No departure date has passed and the trip has not been activated. Most trips created via clone or manual entry start in this status.
+    The trip is still being planned. It has not been activated by the owner and no travel has begun. Trips created via clone or from scratch always start in this status.
   </Tab>
   <Tab title="UPCOMING">
-    The trip's `startDate` is in the future and the trip has been marked active by the owner.
+    The trip's `startDate` is in the future and the owner has marked it as active. The itinerary is finalised and travel is approaching.
   </Tab>
   <Tab title="ONGOING">
     The current date falls between `startDate` and `endDate`. The trip is actively in progress.
   </Tab>
   <Tab title="COMPLETED">
-    The trip's `endDate` has passed. The trip is read-only from a status perspective, though owners can still edit details.
+    The trip's `endDate` has passed. The trip is considered finished, though owners can still update details.
   </Tab>
 </Tabs>

@@ -1,10 +1,10 @@
 ---
-title: "Sign In with Google"
+title: "Sign In to GlobeTrotter with Your Google Account"
 sidebarTitle: "Google Sign-In"
-description: "Use your existing Google account to sign in to GlobeTrotter instantly — no separate password required, with automatic account linking for existing users."
+description: "Use your existing Google account to sign in to GlobeTrotter — no separate password needed. New users get an account created automatically on first sign-in."
 ---
 
-GlobeTrotter supports Google OAuth as a first-class sign-in method. Click "Sign in with Google" on the login page, authorize the app to access your Google account, and you are signed in — no separate GlobeTrotter password is needed. Your account is automatically created on first use and linked to your Google identity on every subsequent sign-in.
+GlobeTrotter supports Google as a first-class sign-in method. Click **Sign in with Google** on the login page, authorize GlobeTrotter to read your name and email, and you are signed in — no separate GlobeTrotter password is needed. Your account is automatically created on first use and linked to your Google identity on every subsequent sign-in.
 
 ## Sign In with Google
 
@@ -13,10 +13,10 @@ GlobeTrotter supports Google OAuth as a first-class sign-in method. Click "Sign 
     Open `/login` in your browser. You will see the standard credential form alongside OAuth options.
   </Step>
   <Step title="Click Sign in with Google">
-    Click the **Sign in with Google** button. GlobeTrotter will initiate the OAuth flow and redirect your browser to Google's authentication servers.
+    Click the **Sign in with Google** button. GlobeTrotter will redirect your browser to Google's authentication page.
   </Step>
-  <Step title="Complete Google's OAuth consent screen">
-    On Google's consent screen, select the Google account you want to use and review the permissions GlobeTrotter requests (typically your name and email address). Click **Continue** to grant access.
+  <Step title="Complete Google's consent screen">
+    On Google's consent screen, select the Google account you want to use and review the permissions GlobeTrotter requests (your name and email address). Click **Continue** to grant access.
   </Step>
   <Step title="Grant permission">
     Confirm the permission prompt. GlobeTrotter only reads your name and email — it does not access your Google Drive, Calendar, or any other Google services.
@@ -39,7 +39,7 @@ Google sign-in automatically manages your GlobeTrotter account based on your ema
 
 ## Permissions Requested
 
-GlobeTrotter requests only the minimum scopes required to identify you:
+GlobeTrotter requests only the minimum information required to identify you:
 
 | Permission | Why It's Needed |
 |---|---|
@@ -51,10 +51,10 @@ GlobeTrotter does **not** request access to Gmail, Google Drive, Google Calendar
 ## Troubleshooting
 
 <Accordion title="The Sign in with Google button is not visible">
-  The Google OAuth button only appears when the platform has valid Google OAuth credentials configured. If the button is absent, the deployment you are using may be running without Google OAuth enabled.
+  The Google OAuth button only appears when the platform has Google OAuth enabled. If the button is absent, the deployment you are using may be running without Google sign-in configured.
 
   <Info>
-    If the "Sign in with Google" button is not visible, the platform may be running in a configuration without Google OAuth enabled. Use email/password credentials or [demo access](/auth/demo-access) to sign in instead.
+    If the "Sign in with Google" button is not visible, use email/password credentials or [demo access](/auth/demo-access) to sign in instead.
   </Info>
 </Accordion>
 

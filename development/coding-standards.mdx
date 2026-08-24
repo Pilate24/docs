@@ -1,7 +1,7 @@
 ---
 title: "GlobeTrotter Coding Standards and Conventions"
 sidebarTitle: "Coding Standards"
-description: "TypeScript rules, naming conventions, API response patterns, and pre-commit quality checks every GlobeTrotter contributor must follow."
+description: "TypeScript rules, naming conventions, API response patterns, and the pre-commit quality checklist every GlobeTrotter contributor must follow."
 ---
 
 GlobeTrotter follows a strict set of engineering standards to keep the codebase consistent, type-safe, and maintainable across every layer of the stack — from database models and API route handlers to React components and Zod validation schemas. All contributors should understand and follow these conventions before submitting code.
@@ -43,7 +43,7 @@ Consistent naming reduces cognitive overhead and makes cross-file searches relia
 
 ## API Response Standard
 
-Every route handler in `src/app/api/` must return responses that conform to the `ApiResponse<T>` envelope defined in `src/types/api.ts`. Never return raw data objects or ad-hoc shapes.
+Every route handler in `src/app/api/` must return responses that conform to the `ApiResponse<T>` envelope. Never return raw data objects or ad-hoc shapes.
 
 ```typescript
 // src/types/api.ts
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
     }
 
     // 3. DB operation
-    const trip = await prisma.trips.create({
+    const trip = await prisma.trip.create({
       data: { ...parsed.data, userId: user.id },
     });
 
@@ -134,7 +134,7 @@ Use Prisma `include` or `select` to fetch nested relationships in a single datab
 
 ```typescript
 // ✅ One query — fetches trip, stops, destinations, and activities together
-const trip = await prisma.trips.findUnique({
+const trip = await prisma.trip.findUnique({
   where: { id: tripId },
   include: {
     stops: {
@@ -159,10 +159,10 @@ Wrap any operation that writes to more than one table in a `prisma.$transaction`
 ```typescript
 // ✅ Clone trip and all its stops atomically
 const clonedTrip = await prisma.$transaction(async (tx) => {
-  const newTrip = await tx.trips.create({ data: { /* ...fields */ } });
+  const newTrip = await tx.trip.create({ data: { /* ...fields */ } });
 
   for (const stop of originalTrip.stops) {
-    await tx.trip_stops.create({
+    await tx.tripStop.create({
       data: { ...stop, tripId: newTrip.id },
     });
   }
@@ -183,7 +183,7 @@ const clonedTrip = await prisma.$transaction(async (tx) => {
 
 ### Form Validation
 
-All forms must validate on both the client (using Zod + React Hook Form or controlled state) and the server (using `.safeParse()` in the route handler). Never rely on a single layer alone.
+All forms must validate on both the client (using Zod and controlled state) and the server (using `.safeParse()` in the route handler). Never rely on a single layer alone.
 
 ```typescript
 // Client-side — validate before submitting
@@ -206,7 +206,7 @@ Run through this checklist before every commit or pull request:
   </Step>
   <Step title="Build">
     Run `npm run build` and verify TypeScript compiles cleanly with no type
-    errors. A red build must never be pushed to `develop` or `main`.
+    errors. A failing build must never be pushed to `develop` or `main`.
   </Step>
   <Step title="Responsive check">
     Open the changed views in your browser at **375 px** (mobile) and

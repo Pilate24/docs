@@ -1,5 +1,5 @@
 ---
-title: "Run GlobeTrotter Locally for Development"
+title: "Local Development Setup for GlobeTrotter (Next.js)"
 sidebarTitle: "Local Setup"
 description: "Clone the GlobeTrotter repository, configure environment variables, run Prisma migrations, seed demo data, and start the Next.js dev server in minutes."
 ---
@@ -32,7 +32,7 @@ GlobeTrotter is an open Next.js application, and running it locally gives you a 
         ```
 
         Your `DATABASE_URL` will be:
-        ```
+        ```text
         postgresql://postgres:<your-password>@localhost:5432/globetrotter
         ```
       </Tab>
@@ -49,7 +49,7 @@ GlobeTrotter is an open Next.js application, and running it locally gives you a 
         ```
 
         Your `DATABASE_URL` will be:
-        ```
+        ```text
         postgresql://postgres:secret@localhost:5432/globetrotter
         ```
       </Tab>
@@ -76,7 +76,7 @@ GlobeTrotter is an open Next.js application, and running it locally gives you a 
     The `globetrotter-app` subdirectory contains the Next.js application. All subsequent commands in this guide should be run from inside that directory.
 
     <Info>
-      The repository root contains architecture and feature documentation (`Feature.md`, `architecture.md`, etc.). The runnable Next.js app lives exclusively under `globetrotter-app/`.
+      All commands in this guide must be run from inside the `globetrotter-app/` directory, which is where the Next.js application and its `package.json` live.
     </Info>
   </Step>
 
@@ -156,7 +156,7 @@ GlobeTrotter is an open Next.js application, and running it locally gives you a 
 
     The terminal will print:
 
-    ```
+    ```text
     ▲ Next.js 16.x
     - Local:   http://localhost:3000
     - Network: http://192.168.x.x:3000
@@ -176,7 +176,7 @@ GlobeTrotter is an open Next.js application, and running it locally gives you a 
 
     <Tabs>
       <Tab title="Demo Traveller">
-        ```
+        ```text
         Email:    user@globetrotter.com
         Password: password123
         Role:     USER
@@ -185,7 +185,7 @@ GlobeTrotter is an open Next.js application, and running it locally gives you a 
         After login you land on `/dashboard`. The account has no trips by default — create your first one by clicking **+ Plan New Trip**.
       </Tab>
       <Tab title="Demo Admin">
-        ```
+        ```text
         Email:    admin@globetrotter.com
         Password: password123
         Role:     ADMIN

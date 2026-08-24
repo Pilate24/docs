@@ -1,10 +1,10 @@
 ---
 title: "Destinations API — Search and Browse Cities"
 sidebarTitle: "Destinations"
-description: "Reference for the GlobeTrotter Destinations API — search and filter the curated city catalogue and fetch full destination details with activities."
+description: "Search and filter GlobeTrotter's curated city catalogue by continent, cost tier, or keyword, and retrieve full destination details with activity listings."
 ---
 
-The Destinations API gives you access to GlobeTrotter's curated catalogue of 20+ global cities. Use it to search, filter, and retrieve destination details including available activities. Destination list and detail endpoints are **publicly readable** — no authentication is required to browse the catalogue. You only need a session when adding a destination to a trip stop.
+The Destinations API gives you access to GlobeTrotter's curated catalogue of 20+ global cities. Use it to search, filter, and retrieve destination details including available activities. Both endpoints are **publicly readable** — no authentication is required to browse the catalogue. You only need a session when adding a destination to a trip stop.
 
 <Note>
   Destination IDs returned by this API are used as the `destinationId` field when creating trip stops via `POST /api/trips/:tripId/stops`.
@@ -69,7 +69,7 @@ Return a paginated list of destinations from the GlobeTrotter catalogue. Filter 
       Cost tier: `BUDGET` | `MODERATE` | `LUXURY`.
     </ResponseField>
     <ResponseField name="popularityScore" type="number">
-      Integer popularity score from 1–100 based on traveller activity within GlobeTrotter.
+      Integer popularity score from 1–10 based on traveller activity within GlobeTrotter.
     </ResponseField>
     <ResponseField name="avgDailyCost" type="number">
       Estimated average daily spend in USD, including accommodation, food, and typical activities.
@@ -78,10 +78,10 @@ Return a paginated list of destinations from the GlobeTrotter catalogue. Filter 
       URL of the destination's hero image.
     </ResponseField>
     <ResponseField name="lat" type="number">
-      Geographic latitude — used to render the destination on the Leaflet map.
+      Geographic latitude — used to render the destination on the interactive map.
     </ResponseField>
     <ResponseField name="long" type="number">
-      Geographic longitude — used to render the destination on the Leaflet map.
+      Geographic longitude — used to render the destination on the interactive map.
     </ResponseField>
   </Expandable>
 </ResponseField>
@@ -104,7 +104,7 @@ GET /api/destinations?continent=Asia&costIndex=BUDGET&sort=popularity&limit=10
       "country": "Japan",
       "continent": "Asia",
       "costIndex": "MODERATE",
-      "popularityScore": 98,
+      "popularityScore": 9,
       "avgDailyCost": 120,
       "imageUrl": "https://images.globetrotter.app/destinations/tokyo.jpg",
       "lat": 35.6762,
@@ -116,7 +116,7 @@ GET /api/destinations?continent=Asia&costIndex=BUDGET&sort=popularity&limit=10
       "country": "Thailand",
       "continent": "Asia",
       "costIndex": "BUDGET",
-      "popularityScore": 94,
+      "popularityScore": 8,
       "avgDailyCost": 55,
       "imageUrl": "https://images.globetrotter.app/destinations/bangkok.jpg",
       "lat": 13.7563,
@@ -163,7 +163,7 @@ Retrieve a single destination by its UUID, including the full catalogue of activ
     <ResponseField name="country" type="string">Country name.</ResponseField>
     <ResponseField name="continent" type="string">Geographic continent.</ResponseField>
     <ResponseField name="costIndex" type="string">`BUDGET` | `MODERATE` | `LUXURY`.</ResponseField>
-    <ResponseField name="popularityScore" type="number">Popularity score 1–100.</ResponseField>
+    <ResponseField name="popularityScore" type="number">Popularity score 1–10.</ResponseField>
     <ResponseField name="avgDailyCost" type="number">Average daily cost estimate in USD.</ResponseField>
     <ResponseField name="description" type="string">Full destination description and travel highlights.</ResponseField>
     <ResponseField name="imageUrl" type="string">URL of the destination's hero image.</ResponseField>
@@ -213,7 +213,7 @@ Retrieve a single destination by its UUID, including the full catalogue of activ
     "country": "Japan",
     "continent": "Asia",
     "costIndex": "MODERATE",
-    "popularityScore": 98,
+    "popularityScore": 9,
     "avgDailyCost": 120,
     "description": "Japan's sprawling capital blends ancient temples with neon-lit skyscrapers, world-class cuisine, and hyper-efficient transit.",
     "imageUrl": "https://images.globetrotter.app/destinations/tokyo.jpg",
@@ -257,13 +257,13 @@ Retrieve a single destination by its UUID, including the full catalogue of activ
   <Card title="Add a Stop" icon="map-pin" href="/api/endpoints/stops">
     Use the `destinationId` from this API to add a city stop to your trip itinerary.
   </Card>
-  <Card title="Schedule Activities" icon="ticket" href="/api/endpoints/stops#post-apitripsidstopsstopidactivities">
+  <Card title="Schedule Activities" icon="ticket" href="/api/endpoints/stops">
     Use the `activityId` values returned here to schedule activities to a stop.
   </Card>
 </CardGroup>
 
 <Accordion title="Activity categories reference">
-  GlobeTrotter activities are tagged with one of six categories used for filtering and icon display throughout the app:
+  Activities at each destination are tagged with one of six categories used for filtering and icon display throughout the app:
 
   | Category | Description |
   |----------|-------------|

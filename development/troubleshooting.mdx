@@ -1,15 +1,15 @@
 ---
-title: "Troubleshoot Common GlobeTrotter Issues"
+title: "Troubleshooting GlobeTrotter Development Issues"
 sidebarTitle: "Troubleshooting"
-description: "Step-by-step fixes for the most common errors encountered when running or developing GlobeTrotter locally, from database issues to OAuth failures."
+description: "Step-by-step fixes for the most common errors developers encounter when running or building GlobeTrotter — database, auth, build, and seed issues."
 ---
 
-This page covers the most common issues encountered when running or developing GlobeTrotter, along with their causes and step-by-step solutions. Work through the relevant accordion below before opening a new issue on GitHub.
+This page covers the most common issues encountered when running or developing GlobeTrotter, along with their causes and step-by-step solutions. Work through the relevant section below before opening a new issue on GitHub.
 
 ## Common Issues
 
 <Accordion title="Can't connect to database / Prisma connection error">
-  **Cause:** `DATABASE_URL` is not set in your `.env` file, PostgreSQL is not running, or the credentials in the connection string are incorrect.
+  **Cause:** `DATABASE_URL` is not set in `.env.local`, PostgreSQL is not running, or the credentials in the connection string are incorrect.
 
   **Solutions:**
 
@@ -22,7 +22,7 @@ This page covers the most common issues encountered when running or developing G
      sudo systemctl status postgresql
      ```
 
-  2. Check that `DATABASE_URL` in your `.env` file follows the correct format:
+  2. Check that `DATABASE_URL` in `globetrotter-app/.env.local` follows the correct format:
      ```text
      DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME"
      ```
@@ -36,14 +36,15 @@ This page covers the most common issues encountered when running or developing G
      psql $DATABASE_URL
      ```
 
-  4. If Prisma reports that the schema is out of date, run the pending migrations:
+  4. If Prisma reports that the schema is out of date, apply pending migrations:
      ```bash
      npx prisma migrate dev
      ```
 
   <Warning>
-    Never commit your `.env` file. The repository includes `.env.example` with
-    placeholder values — copy it to `.env` and fill in your own credentials.
+    Never commit your `.env.local` file. Copy `.env.example` to `.env.local`
+    and fill in your own credentials — the example file contains only
+    placeholder values.
   </Warning>
 </Accordion>
 
@@ -53,18 +54,18 @@ This page covers the most common issues encountered when running or developing G
   **Solutions:**
 
   1. Log out and log back in to refresh the session cookie:
-     - Visit `/login` and sign in with your credentials or the demo account.
+     - Visit `/login` and sign in with your credentials or a demo account.
 
-  2. If you are making manual API calls (e.g., with `curl` or a REST client), ensure you include the session cookie. In browser fetch calls, add `credentials: 'include'`:
+  2. If you are making manual API calls (e.g., with `curl` or a REST client), include the session cookie. In browser fetch calls, add `credentials: 'include'`:
      ```typescript
      const response = await fetch('/api/trips', {
        credentials: 'include', // required for cookie-based auth
      });
      ```
 
-  3. Confirm the `gt_session` cookie is present in your browser's DevTools under **Application → Cookies** for your local origin (e.g., `http://localhost:3000`).
+  3. Confirm the `gt_session` cookie is present in your browser's DevTools under **Application → Cookies** for your local origin (`http://localhost:3000`).
 
-  4. If the cookie is missing entirely, verify that `NEXTAUTH_SECRET` is set in your `.env` file — NextAuth requires this to sign session tokens.
+  4. If the cookie is missing entirely, verify that `NEXTAUTH_SECRET` is set in your `.env.local` file — NextAuth requires this to sign session tokens.
 </Accordion>
 
 <Accordion title="Google OAuth redirect fails">
@@ -83,7 +84,7 @@ This page covers the most common issues encountered when running or developing G
      http://localhost:3000/api/auth/callback/google
      ```
 
-  3. Make sure your `.env` file contains the matching value:
+  3. Make sure your `.env.local` file contains the matching value:
      ```text
      NEXTAUTH_URL="http://localhost:3000"
      GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
@@ -110,11 +111,11 @@ This page covers the most common issues encountered when running or developing G
 
   3. If the chart still shows `NaN` after setting dates, open your browser DevTools **Console** tab and look for errors from the `/api/trips/:id/budget` endpoint. A `400` response usually means a date field contains an invalid string.
 
-  4. Ensure all date values are valid ISO 8601 strings (`YYYY-MM-DD`). Dates entered as `DD/MM/YYYY` or other formats will fail the Zod `.refine()` check in `stopUpdateSchema`.
+  4. Ensure all date values are valid ISO 8601 strings (`YYYY-MM-DD`). Dates entered as `DD/MM/YYYY` or other formats will fail the Zod validation check in `stopUpdateSchema`.
 </Accordion>
 
 <Accordion title='"Trip not found" on public share URL'>
-  **Cause:** The trip's visibility is set to private (`isPublic: false`). The public share endpoint (`/api/public/trips/:slug`) returns `404` for private trips, even if the slug is correct.
+  **Cause:** The trip's visibility is set to private (`isPublic: false`). The public share endpoint returns `404` for private trips, even if the slug is correct.
 
   **Solutions:**
 
@@ -122,19 +123,19 @@ This page covers the most common issues encountered when running or developing G
 
   2. Find the **Share / Visibility** toggle and switch the trip to **Public**. GlobeTrotter auto-generates a URL-safe slug from the trip title at this point.
 
-  3. Copy the vanity URL from the share panel and confirm it matches the slug in the browser address bar. If you renamed the trip after publishing it, the slug may have changed — use the new URL from the share panel.
+  3. Copy the URL from the share panel and confirm it matches the slug in the browser address bar. If you renamed the trip after publishing it, the slug may have changed — use the new URL from the share panel.
 
-  4. If you are testing the API directly, confirm the slug value with a `GET /api/trips?id=YOUR_TRIP_ID` call and check the `slug` field in the response.
+  4. If you are testing the API directly, confirm the slug value with a `GET /api/trips` call and check the `slug` field in the response for your trip.
 </Accordion>
 
 <Accordion title="Drag-and-drop not working in the builder">
-  **Cause:** JavaScript is disabled in the browser, or the browser version is too old to support the drag-and-drop library used by GlobeTrotter.
+  **Cause:** JavaScript is disabled in the browser, or the browser version is below the minimum supported version.
 
   **Solutions:**
 
   1. Confirm JavaScript is enabled. In Chrome, navigate to **Settings → Privacy and security → Site settings → JavaScript** and ensure it is set to **Sites can use JavaScript**.
 
-  2. Check your browser version. GlobeTrotter's drag-and-drop requires a modern browser:
+  2. Check your browser version. GlobeTrotter requires a modern browser:
 
      | Browser | Minimum Version |
      |---|---|
@@ -145,11 +146,11 @@ This page covers the most common issues encountered when running or developing G
 
   3. Try a hard refresh (`Ctrl + Shift + R` / `Cmd + Shift + R`) to clear any stale cached JavaScript bundles.
 
-  4. If you are running the development server, confirm there are no build errors in the terminal output — a JavaScript bundle that failed to compile will cause interactive features to break silently.
+  4. If you are running the development server, confirm there are no build errors in the terminal output — a bundle that failed to compile will cause interactive features to break silently.
 </Accordion>
 
 <Accordion title="`npm run build` TypeScript errors">
-  **Cause:** Strict TypeScript violations introduced in a recent change — typically `any` types, missing interface definitions, or incorrect return types on async functions.
+  **Cause:** Strict TypeScript violations in a recent change — typically `any` types, missing interface definitions, or incorrect return types on async functions.
 
   **Solutions:**
 
@@ -165,7 +166,7 @@ This page covers the most common issues encountered when running or developing G
 
   3. Never use `// @ts-ignore` or `// @ts-expect-error` as a permanent fix. These comments mask real bugs and will be rejected in code review.
 
-  4. If the error originates in a generated file (e.g., inside `node_modules` or `.next/`), delete the `.next/` cache directory and rebuild:
+  4. If the error originates in a generated or cached file, delete the `.next/` directory and rebuild:
      ```bash
      rm -rf .next
      npm run build
@@ -173,7 +174,7 @@ This page covers the most common issues encountered when running or developing G
 </Accordion>
 
 <Accordion title="Seed script fails">
-  **Cause:** The database has not been migrated yet, or the seed data already exists from a previous run and violates a unique constraint.
+  **Cause:** The database has not been migrated yet, or seed data from a previous run is still present and violates a unique constraint.
 
   **Solutions:**
 
@@ -184,27 +185,60 @@ This page covers the most common issues encountered when running or developing G
 
   2. Then run the seed script:
      ```bash
-     npm run db:seed
-     # or directly:
-     npx ts-node prisma/seed.ts
+     npx prisma db seed
      ```
 
-  3. If the script fails with a **unique constraint violation**, seed data from a previous run is still present. Truncate the relevant tables and re-run:
+  3. If the script fails with a **unique constraint violation**, data from a previous run is still present. Truncate the relevant tables and re-run:
      ```bash
-     # Connect to your database and truncate in dependency order
      psql $DATABASE_URL -c "TRUNCATE trip_stop_activities, trip_stops, trip_expenses, trips, user_saved_destinations, activities, destinations, users RESTART IDENTITY CASCADE;"
-     npm run db:seed
-     ```
-
-  4. Alternatively, if the seed script supports it, pass a `--force` flag to drop and re-insert all records:
-     ```bash
-     npx ts-node prisma/seed.ts --force
+     npx prisma db seed
      ```
 
   <Warning>
     Only truncate tables in a local development database. Never run
     destructive commands against a staging or production database.
   </Warning>
+</Accordion>
+
+<Accordion title="Dev server starts but pages show a blank screen">
+  **Cause:** A React rendering error is being caught silently, or a required environment variable is missing so a component crashes on first render.
+
+  **Solutions:**
+
+  1. Open your browser DevTools **Console** tab and look for a red error message or unhandled promise rejection.
+
+  2. Check the terminal where `npm run dev` is running for any server-side errors printed to stdout.
+
+  3. Verify that all three required environment variables are set in `globetrotter-app/.env.local`:
+     ```text
+     DATABASE_URL="..."
+     NEXTAUTH_SECRET="..."
+     NEXTAUTH_URL="http://localhost:3000"
+     ```
+
+  4. Delete the `.next/` cache directory and restart the dev server:
+     ```bash
+     rm -rf .next
+     npm run dev
+     ```
+</Accordion>
+
+<Accordion title="Prisma client is out of date after schema change">
+  **Cause:** You edited `prisma/schema.prisma` but did not regenerate the Prisma client, so TypeScript still sees the old model types.
+
+  **Solutions:**
+
+  1. After every change to `prisma/schema.prisma`, regenerate the client:
+     ```bash
+     npx prisma generate
+     ```
+
+  2. If you also need to push the schema change to the database (development only), run:
+     ```bash
+     npx prisma migrate dev --name describe-your-change
+     ```
+
+  3. Restart the TypeScript language server in your editor after regeneration — VS Code: press `Ctrl + Shift + P` → **TypeScript: Restart TS Server**.
 </Accordion>
 
 ---

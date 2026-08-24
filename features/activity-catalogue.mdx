@@ -1,10 +1,10 @@
 ---
-title: "Browse and Schedule Activities for Your GlobeTrotter Trip"
+title: "Browse and Schedule Trip Activities — GlobeTrotter"
 sidebarTitle: "Activity Catalogue"
-description: "Explore 80+ curated activities across 6 continents, filter by category, price, and duration, and schedule them directly to any stop in your itinerary."
+description: "Filter curated activities by category, cost, and destination, then schedule them to any city stop in your itinerary with a single click."
 ---
 
-The Activity Catalogue gives you access to 80+ curated activities across 6 continents — filterable by category, destination, price range, and duration — and lets you schedule any activity directly to a specific day in your itinerary. Whether you're hunting for a hidden culinary experience in Tokyo or an adrenaline-fueled adventure in Queenstown, the catalogue surfaces the right options and wires them into your trip budget the moment you confirm.
+The Activity Catalogue gives you access to a curated library of activities across all destinations in GlobeTrotter — filterable by category, destination, and maximum cost — and lets you schedule any activity directly to a city stop in your itinerary. Whether you are hunting for a hidden culinary experience in Tokyo or an adrenaline-fuelled adventure in Queenstown, the catalogue surfaces the right options and wires them into your trip budget the moment you confirm.
 
 ## Accessing the Catalogue
 
@@ -19,61 +19,46 @@ You can reach the Activity Catalogue from two entry points:
   </Card>
 </CardGroup>
 
-## Browsing Activities
+## Browsing and Filtering Activities
 
-The catalogue toolbar gives you four independent filters that stack together to narrow results in real time.
+The catalogue gives you two independent filters that stack together to narrow results in real time.
 
-**Category filter pills** — click any pill to show only activities of that type:
+**Category filter** — select a category from the dropdown to show only activities of that type:
 
-| Pill | Activity Type |
+| Category Value | Activity Type |
 |---|---|
-| Cultural | Museums, heritage sites, local ceremonies |
-| Outdoor | Parks, scenic walks, nature reserves |
-| Culinary | Food tours, cooking classes, wine tastings |
-| Nightlife | Bar crawls, live music, rooftop experiences |
-| Shopping | Markets, boutique districts, artisan workshops |
-| Wellness | Spa, yoga retreats, meditation |
-| Adventure | Hiking, water sports, extreme activities |
+| `SIGHTSEEING` | Landmarks, monuments, observation decks, audio-guided tours |
+| `ADVENTURE` | Hiking, water sports, climbing, extreme activities |
+| `FOOD` | Food tours, cooking classes, wine tastings, culinary experiences |
+| `CULTURE` | Museums, heritage sites, local ceremonies, art galleries |
+| `NIGHTLIFE` | Bar crawls, live music, rooftop experiences, clubs |
 
-**Search bar** — type any keyword to match against activity titles across all categories.
+Select **All** (the default) to see activities across every category.
 
-**Price range slider** — drag both handles to set a minimum and maximum estimated cost in your trip's currency.
-
-**Duration filter** — set a maximum duration in minutes to exclude activities that run longer than your available window.
+**Max Cost filter** — enter a maximum estimated cost in your trip's currency. The catalogue hides any activity whose estimated cost exceeds the value you enter.
 
 ## Activity Card Details
 
 Each card in the catalogue displays at a glance:
 
-- **Title** — the activity name and location hint
-- **Category** — colour-coded badge matching the filter pills
-- **Estimated Cost** — the catalogue default price (USD)
-- **Duration** — estimated time in minutes
+- **Title** — the activity name
+- **Description** — a short summary of what the activity involves
+- **Category** — a colour-coded badge matching the category filter
+- **Estimated Cost** — the catalogue default price in USD
+- **Duration** — estimated time to complete the activity, in minutes
 - **Star Rating** — average user rating from 1–5
 
 ## Scheduling an Activity
 
 <Steps>
   <Step title="Find the activity you want">
-    Use the filters and search bar to locate the activity. Confirm the estimated cost and duration suit your plan.
+    Use the category filter and max cost input to locate the activity. Confirm the estimated cost and duration suit your plan.
   </Step>
-  <Step title='Click "Schedule to Day"'>
-    On the activity card, click the **Schedule to Day** button to open the scheduling modal.
+  <Step title="Click Schedule">
+    On the activity card, click the **Schedule** button. GlobeTrotter assigns the activity to the current city stop.
   </Step>
-  <Step title="Select the trip stop (city)">
-    Choose the city stop where you want this activity. The dropdown lists all stops currently in your itinerary.
-  </Step>
-  <Step title="Select the date within that stop's date range">
-    Pick a specific date from the calendar — only dates that fall within the chosen stop's arrival and departure dates are selectable.
-  </Step>
-  <Step title="Set a start time (optional)">
-    Enter a start time to place the activity as a timed block in the Calendar view. Leave blank to add it as an unscheduled item for that day.
-  </Step>
-  <Step title="Enter a custom cost (optional)">
-    If you have a specific price — for example, a quote from a tour operator — enter it in the **Custom Cost** field to override the catalogue estimate. Your trip budget updates immediately.
-  </Step>
-  <Step title='Click "Confirm"'>
-    GlobeTrotter saves the activity to the selected stop and day. You'll see it appear as a chip on the stop card in the Builder and as a timed block in the Calendar.
+  <Step title="Review in the Builder">
+    The activity appears immediately as a chip on the stop card in the Itinerary Builder. Its estimated cost is rolled into the trip budget total straight away.
   </Step>
 </Steps>
 
@@ -81,19 +66,21 @@ Each card in the catalogue displays at a glance:
 
 Once scheduled, activities surface in two places:
 
-- **Itinerary Builder (Builder tab)** — activities appear as colour-coded chips on each city stop card, grouped by day.
-- **Calendar Timeline (Calendar tab)** — activities appear as timed blocks on their scheduled dates, alongside the city stay spans.
+- **Itinerary Builder (Builder tab)** — activities appear as colour-coded chips on each city stop card.
+- **Calendar Timeline (Calendar tab)** — activities appear as entries on their scheduled dates alongside city stay spans.
 
 ## Removing an Activity
 
-To remove a scheduled activity, use one of these methods:
+To remove a scheduled activity from a stop, use one of these methods:
 
-- **In the Itinerary Builder** — click the **×** on the activity chip attached to a stop card.
+- **In the Itinerary Builder** — click the **❌** icon on the activity chip attached to the stop card.
 - **Via the API** — send a `DELETE` request to the activity endpoint:
 
 ```http
 DELETE /api/trips/:tripId/stops/:stopId/activities/:id
 ```
+
+**Response:**
 
 ```json
 {
@@ -104,17 +91,49 @@ DELETE /api/trips/:tripId/stops/:stopId/activities/:id
 }
 ```
 
+## Adding an Activity via API
+
+You can also add an activity to a stop programmatically:
+
+```http
+POST /api/trips/:tripId/stops/:stopId/activities
+```
+
+```json
+{
+  "activityId": "act_001",
+  "estimatedCost": 32
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "scheduled_abc",
+    "tripId": "trip_123",
+    "stopId": "stop_456",
+    "activityId": "act_001",
+    "estimatedCost": 32
+  },
+  "message": "Activity added to stop.",
+  "error": null
+}
+```
+
 <Tip>
-  Use the **custom cost** override when you have a specific booking quote that differs from the catalogue estimate — for example, a private guided tour you've already reserved. Entering the actual price keeps your budget projection accurate from the moment you confirm.
+  When you have a specific booking quote that differs from the catalogue estimate — for example, a private guided tour you have already reserved — pass the actual price as `estimatedCost` in the API request to keep your budget projection accurate from the moment you confirm.
 </Tip>
 
 ## Activity Fields Reference
 
 | Field | Description |
 |---|---|
-| Title | Activity name as listed in the catalogue |
-| Category | Type of activity (Cultural, Outdoor, Culinary, etc.) |
-| Estimated Cost | Catalogue default price in USD |
-| Duration | Estimated time to complete the activity, in minutes |
-| Rating | Average user rating on a 1–5 scale |
-| Custom Cost | Your override price — replaces the catalogue estimate for budget calculations |
+| `title` | Activity name as listed in the catalogue |
+| `category` | Type of activity: `SIGHTSEEING`, `ADVENTURE`, `FOOD`, `CULTURE`, or `NIGHTLIFE` |
+| `estimatedCost` | Catalogue default price in USD |
+| `durationMinutes` | Estimated time to complete the activity, in minutes |
+| `rating` | Average user rating on a 1–5 scale |
+| `description` | Short description of the activity |

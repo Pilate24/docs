@@ -1,32 +1,31 @@
 ---
-title: "Budget API — Cost Breakdown and Analytics"
+title: "Budget API — Trip Cost Breakdown and Variance"
 sidebarTitle: "Budget"
-description: "Retrieve aggregated cost analysis for a trip including category breakdowns, daily burn rate, and budget variance against your target spend."
+description: "Retrieve aggregated cost analysis for a trip: lodging, transport, activity, and food totals, plus daily burn rate and variance against your target spend."
 ---
 
-The Budget API returns a complete financial breakdown for a trip — aggregated costs by category, daily burn rate, budget variance, and per-day spend data. Use it to power dashboards, charts, or custom spend-tracking logic on top of your GlobeTrotter itineraries.
+The Budget API returns a complete financial breakdown for a trip — aggregated costs by category, a day-by-day burn rate, variance against your target spend, and a daily average. Use it to power dashboards, build spend-tracking views, or let travelers know at a glance whether they're within budget.
 
 ## GET /api/trips/:tripId/budget
 
 Fetch the full budget analysis for a single trip. This endpoint requires authentication and trip ownership — you can only retrieve budget data for trips that belong to your account.
 
-### Path Parameters
+### Path parameters
 
 <ParamField path="tripId" type="string" required>
   The UUID of the trip whose budget you want to retrieve.
 </ParamField>
 
-### Example Request
+### Example request
 
-```http
+```http title="Fetch budget breakdown for a trip"
 GET /api/trips/trip-uuid/budget
-Authorization: Bearer <session-token>
 ```
 
-### Response Fields
+### Response fields
 
 <ResponseField name="targetBudget" type="number">
-  The budget goal set when the trip was created or last updated. Expressed in the trip's configured currency (default USD).
+  The budget goal set when the trip was created or last updated, expressed in the trip's configured currency (default `USD`).
 </ResponseField>
 
 <ResponseField name="totalEstimatedCost" type="number">
@@ -34,7 +33,7 @@ Authorization: Bearer <session-token>
 </ResponseField>
 
 <ResponseField name="variance" type="number">
-  `targetBudget` minus `totalEstimatedCost`. A **positive** value means you are under budget. A **negative** value means you have exceeded your target.
+  `targetBudget` minus `totalEstimatedCost`. A **positive** value means you are under budget (money remaining). A **negative** value means you have exceeded your target spend.
 </ResponseField>
 
 <ResponseField name="dailyAverage" type="number">
@@ -45,19 +44,19 @@ Authorization: Bearer <session-token>
   Category-level cost totals aggregated across all stops.
 
   <ResponseField name="breakdown.lodging" type="number">
-    Total accommodation costs across all trip stops.
+    Total accommodation costs across all trip stops. Calculated as `accommodationCost × numberOfNights` for each stop, where `accommodationCost` is the per-night rate entered on the stop.
   </ResponseField>
 
   <ResponseField name="breakdown.transport" type="number">
-    Total transport costs (flights, trains, buses, etc.) across all stop transitions.
+    Total transport costs (flights, trains, buses, etc.) across all stop transitions. Derived from the `transportCost` field on each stop.
   </ResponseField>
 
   <ResponseField name="breakdown.activities" type="number">
-    Sum of estimated costs for all scheduled activities.
+    Sum of costs for all scheduled activities. Uses `customCost` when set on a scheduled activity, otherwise falls back to the catalogue `estimatedCost`.
   </ResponseField>
 
   <ResponseField name="breakdown.food" type="number">
-    Estimated food and dining spend for the trip duration.
+    Estimated food and dining spend for the trip duration. Calculated as **$50 per person per day** across all stop days — adjust individual stop dates to influence this figure.
   </ResponseField>
 </ResponseField>
 
@@ -73,9 +72,9 @@ Authorization: Bearer <session-token>
   </ResponseField>
 </ResponseField>
 
-### Example Response
+### Example response
 
-```json
+```json title="200 OK"
 {
   "success": true,
   "data": {
@@ -100,37 +99,33 @@ Authorization: Bearer <session-token>
 ```
 
 <Tip>
-  A positive `variance` means you're under budget. A negative `variance` (e.g., `-500`) means you're $500 over your target — review the `dailyBurnRate` array to identify high-spend days and adjust accommodation or activity costs at those stops.
+  A positive `variance` means you are under budget — there is money left to spend. A negative `variance` (e.g. `-500`) means you are $500 over your target. Review the `dailyBurnRate` array to identify high-spend days and adjust accommodation or activity costs at those stops.
 </Tip>
 
-### Response Codes
+### Response codes
 
 | Status | Meaning |
 |--------|---------|
 | `200`  | Success — returns the full budget summary object |
-| `401`  | Not authenticated — include a valid session cookie or token |
+| `401`  | Not authenticated — a valid session is required |
 | `403`  | Authenticated but you do not own this trip |
 | `404`  | No trip found with the given `tripId` |
 | `500`  | Internal server error |
 
-### Budget Categories Reference
+### Budget categories explained
 
-<Accordion title="LODGING">
-  Accommodation costs entered per stop via the `accommodationCost` field on each `trip_stop` record. Represents nightly hotel, hostel, or rental fees.
+<Accordion title="Lodging">
+  Accommodation costs entered per stop via the `accommodationCost` field. This is a **nightly rate** — the budget engine multiplies it by the number of nights at that stop to compute the total lodging contribution. For a stop with `accommodationCost: 120` and a 4-night stay, the lodging contribution is `$480`.
 </Accordion>
 
-<Accordion title="TRANSPORT">
-  Travel costs between stops, derived from the `transportCost` field on each `trip_stop`. Covers all `transportMode` values: `FLIGHT`, `TRAIN`, `BUS`, `DRIVE`, `FERRY`, and `NONE`.
+<Accordion title="Transport">
+  Travel costs between stops, derived from the `transportCost` field on each stop. Covers all transport modes: `FLIGHT`, `TRAIN`, `BUS`, `DRIVE`, `FERRY`, and `NONE`.
 </Accordion>
 
-<Accordion title="ACTIVITIES">
-  Aggregated `estimatedCost` values from all `trip_stop_activities` records linked to the trip. Reflects the activities you have scheduled, not the full catalogue price.
+<Accordion title="Activities">
+  Aggregated costs from all activities scheduled to stops on this trip. If a `customCost` override was set when scheduling an activity, that value is used instead of the catalogue price.
 </Accordion>
 
-<Accordion title="FOOD">
-  Food and dining estimates stored as `trip_expenses` records with category `FOOD`. Add individual expense records to improve the accuracy of this figure.
+<Accordion title="Food">
+  Food and dining costs are estimated at a flat **$50 per day** for each day covered by a trip stop. This default gives a baseline food budget you can compare against actual spend. The `dailyAverage` field incorporates this estimate alongside all other cost categories.
 </Accordion>
-
-<Note>
-  The `breakdown` object does not include a `MISC` line — miscellaneous expenses recorded under the `MISC` category are included in `totalEstimatedCost` but are not surfaced as a named breakdown key. Query individual expense records via `GET /api/trips/:tripId/expenses` to inspect MISC items.
-</Note>

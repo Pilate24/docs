@@ -1,16 +1,16 @@
 ---
-title: "Authentication in GlobeTrotter"
+title: "GlobeTrotter Authentication: Methods, Roles and Sessions"
 sidebarTitle: "Overview"
 description: "How GlobeTrotter handles authentication, supported login methods — email/password, Google OAuth, and demo accounts — and the USER and ADMIN role system."
 ---
 
-GlobeTrotter uses NextAuth for session management, giving you two primary ways to sign in — email/password credentials or Google OAuth — plus one-click demo accounts for instant exploration. Once authenticated, your session is stored in a secure HTTP-only cookie (`gt_session`) and automatically validated on every protected page.
+GlobeTrotter gives you two primary ways to sign in — email/password credentials or Google OAuth — plus one-click demo accounts for instant exploration. Once authenticated, your session is stored in a secure HTTP-only cookie and automatically validated on every protected page.
 
 ## Supported Login Methods
 
 <CardGroup cols={2}>
   <Card title="Email & Password" icon="envelope" href="/auth/credentials">
-    Register with your name, email, and a password. Passwords are hashed with bcrypt and never stored in plaintext.
+    Register with your name, email, and a password. Your credentials are stored securely and all sessions are maintained via HTTP-only cookies.
   </Card>
   <Card title="Google OAuth" icon="google" href="/auth/google-oauth">
     Sign in with your existing Google account in one step — no separate password required.
@@ -71,6 +71,7 @@ When no session is active, the endpoint returns:
 {
   "success": false,
   "data": null,
+  "message": "",
   "error": "No active session"
 }
 ```
@@ -83,7 +84,7 @@ The following route prefixes require an active session. Middleware intercepts un
 |---|---|
 | `/itinerary-builder/*` | Any authenticated user (USER or ADMIN) |
 | `/profile/*` | Any authenticated user (USER or ADMIN) |
-| `/admin/*` | ADMIN role only |
+| `/admin/*` | Authenticated users with the ADMIN role |
 
 <Note>
   Route protection is enforced at the middleware layer via the `gt_session` cookie check. Even direct API calls to protected endpoints require an active session and will receive a `401 Unauthorized` response if none is present.
@@ -91,7 +92,7 @@ The following route prefixes require an active session. Middleware intercepts un
 
 ## API Authentication
 
-All GlobeTrotter API endpoints — except `GET /api/public/trips/:slug` — require an active session validated by `getServerSession`. Unauthenticated requests receive a `401` response with the following envelope:
+All GlobeTrotter API endpoints — except `GET /api/public/trips/:slug` — require an active session. Unauthenticated requests receive a `401` response with the following envelope:
 
 ```json
 {

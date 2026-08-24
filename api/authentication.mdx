@@ -1,10 +1,10 @@
 ---
-title: "Authenticate Requests to the GlobeTrotter API"
+title: "How to Authenticate Your GlobeTrotter API Requests"
 sidebarTitle: "Authentication"
-description: "Learn how GlobeTrotter's session-based authentication works and how to make authenticated API requests using NextAuth session cookies."
+description: "Learn how GlobeTrotter session-based authentication works, how to sign in, and how to include your session cookie in every API request."
 ---
 
-GlobeTrotter uses session-based authentication managed by NextAuth. When you log in through the UI, NextAuth automatically sets a session cookie in your browser. API requests you make from the browser include this cookie automatically — no manual token management is required for standard integrations.
+GlobeTrotter uses session-based authentication. When you log in through the UI, the server automatically sets a secure session cookie in your browser. API requests you make from the browser include this cookie automatically — no manual token management is required for standard integrations.
 
 ## How Authentication Works
 
@@ -17,14 +17,14 @@ GlobeTrotter uses session-based authentication managed by NextAuth. When you log
     | USER | `user@globetrotter.com` | `password123` |
     | ADMIN | `admin@globetrotter.com` | `password123` |
   </Step>
-  <Step title="NextAuth sets a session cookie">
-    On successful authentication, NextAuth creates a server-managed session and sets an HTTP-only cookie in your browser. This cookie identifies your session on all subsequent requests.
+  <Step title="A session cookie is set">
+    On successful authentication, the server creates a managed session and sets an HTTP-only cookie in your browser. This cookie identifies your session on all subsequent requests.
   </Step>
   <Step title="API requests include the cookie automatically">
     Any fetch call made from the browser to a same-origin GlobeTrotter API route will automatically include the session cookie — provided you pass `credentials: 'include'` in your fetch options.
   </Step>
   <Step title="The server validates the session">
-    Every protected route calls `getServerSession` on the incoming request. If the session is valid, the request proceeds. If not, the server responds with HTTP `401 Unauthorized`.
+    Every protected route checks the incoming request for a valid session. If the session is valid, the request proceeds. If not, the server responds with HTTP `401 Unauthorized`.
   </Step>
 </Steps>
 
@@ -124,7 +124,7 @@ Endpoints under `/api/admin/*` require the authenticated user to have the `ADMIN
 
 ## Authentication Providers
 
-GlobeTrotter supports two authentication providers via NextAuth:
+GlobeTrotter supports two ways to sign in:
 
 <CardGroup cols={2}>
   <Card title="Email & Password" icon="envelope">
@@ -136,5 +136,5 @@ GlobeTrotter supports two authentication providers via NextAuth:
 </CardGroup>
 
 <Note>
-  There is no API key system in GlobeTrotter — all authentication uses session cookies. If you are building a programmatic integration outside of a browser, authenticate by calling `POST /api/auth/[...nextauth]` with your credentials and maintain the returned session cookie across subsequent requests.
+  There is no API key system in GlobeTrotter — all authentication uses session cookies. If you are building a programmatic integration outside of a browser, log in via `POST /api/auth/login` with your credentials and maintain the returned session cookie across subsequent requests.
 </Note>

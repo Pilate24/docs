@@ -1,7 +1,7 @@
 ---
-title: "Track and Manage Your Trip Budget"
+title: "Trip Budget Tracking and Cost Breakdown — GlobeTrotter"
 sidebarTitle: "Budget Tracking"
-description: "Monitor your trip spend with GlobeTrotter's Budget screen — live cost breakdowns, category donut charts, daily spend velocity, and budget variance."
+description: "Monitor trip spend with a live category donut chart, daily spend velocity bars, and budget variance — all calculated automatically from your itinerary."
 ---
 
 The Budget screen gives you a live financial snapshot of your trip — total estimated cost, a breakdown by spending category, daily burn rate, and variance against the target budget you set when creating the trip. Every time you add or update a stop, activity, or cost figure in the Itinerary Builder, the budget figures recalculate instantly.
@@ -33,9 +33,9 @@ The top row of the Budget screen displays four key figures at a glance:
 
 ---
 
-## Category Breakdown Donut Chart
+## Category Breakdown — DonutChart
 
-The donut chart (powered by Recharts) visualises the proportional share of each spending category in your total budget:
+The `DonutChart` component (powered by Recharts) visualises the proportional share of each spending category in your total budget:
 
 | Segment | Category | What It Includes |
 |---|---|---|
@@ -48,30 +48,41 @@ Hover over any segment to see the exact currency amount and percentage share.
 
 ---
 
-## Daily Spend Velocity Bar Chart
+## Daily Spend Velocity — DailySpendBar
 
-The bar chart shows your estimated spending broken down by individual day across the entire trip duration. Each bar represents one calendar day. Days where the projected spend exceeds the daily average threshold are highlighted with a warning indicator — these are the days to review in the Itinerary Builder to optimize costs.
+The `DailySpendBar` chart shows your estimated total cost averaged across the number of trip days. Each bar represents the average daily spend, giving you a quick sense of pacing relative to your target budget. Days where the projected spend exceeds the daily average threshold are highlighted with a warning indicator — these are the stops to review in the Itinerary Builder to optimise costs.
 
 <Warning>
-  Days where estimated spend exceeds the daily average are flagged in the bar chart. Open the Itinerary Builder for those specific dates and consider redistributing activities or renegotiating accommodation costs to bring the day back within target.
+  When the daily spend indicator exceeds your target, open the Itinerary Builder for the flagged stops and consider redistributing activities or adjusting accommodation costs to bring the day back within target.
 </Warning>
+
+---
+
+## Budget Variance Indicator — BudgetVariancePill
+
+The `BudgetVariancePill` component shows the difference between your target budget and the total estimated cost in a compact badge:
+
+| Status | Condition | Badge Colour |
+|---|---|---|
+| **Within Budget** | `Budget Variance ≥ 0` | Green |
+| **Over Budget** | `Budget Variance < 0` | Red |
 
 ---
 
 ## Itemized Expense Breakdown
 
-Below the charts, the budget summary panel lists every cost component by category with its contributing stop or activity:
+Below the charts, the budget summary panel lists every cost component by category:
 
-- Each lodging entry shows the city, nightly rate, and total nights
-- Each transport entry shows the city stop and mode of travel
-- Each activity entry shows the activity title and estimated ticket cost
-- Food is listed as a flat daily estimate for the full trip duration
+- Each **Lodging** entry shows the nightly rate multiplied by the number of nights at that stop
+- Each **Transport** entry shows the cost entered for reaching that stop
+- Each **Activities** entry shows the estimated cost for each scheduled activity
+- **Food** is listed as a flat `$50 × total trip days` estimate for the full trip
 
 ---
 
 ## How Budget Figures Are Calculated
 
-GlobeTrotter derives all budget figures from the stops and activities you enter. The formulas below show exactly how each number is computed:
+GlobeTrotter derives all budget figures from the stops and activities you enter in the Itinerary Builder. The formulas below show exactly how each number is computed:
 
 ```text
 Lodging Total    = Σ (accommodationCost per stop × nights at that stop)
@@ -85,7 +96,7 @@ Avg Cost / Day   = Total Cost ÷ Total Trip Days
 ```
 
 <Note>
-  Budget figures are estimates based on the costs you enter and the flat $50/day food default. For more granular tracking, add explicit expense records via the Expenses API (`POST /api/trips/:tripId/expenses`) with categories from `LODGING`, `TRANSPORT`, `ACTIVITIES`, `FOOD`, or `MISC`.
+  The $50/day food estimate is a default built into the Budget Engine. For a more accurate food figure, update your accommodation costs and activity costs to reflect your planned spend — the engine aggregates everything you enter automatically.
 </Note>
 
 ---
@@ -105,19 +116,46 @@ Your target budget is set during trip creation, but you can revise it at any tim
     Enter a new value in the **Target Budget** field. You can also change the currency from the dropdown (USD, EUR, GBP, INR, JPY, AUD).
   </Step>
   <Step title="Save">
-    Click **Save Changes**. The Budget Variance card on the Budget screen reflects the new target immediately.
+    Click **Save Changes**. The Budget Variance indicator on the Budget screen reflects the new target immediately.
   </Step>
 </Steps>
 
 ---
 
-## Budget Status Indicators
+## Updating Trip Budget via API
 
-| Status | Condition | Badge Colour |
-|---|---|---|
-| **Within Budget** | `Budget Variance ≥ 0` | Green |
-| **Over Budget** | `Budget Variance < 0` | Red |
+You can update the target budget programmatically using the trip update endpoint:
+
+```http
+PUT /api/trips/:id
+```
+
+```json
+{
+  "targetBudget": 4500,
+  "currency": "EUR"
+}
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "trip_123",
+    "targetBudget": 4500,
+    "currency": "EUR"
+  },
+  "message": "Trip updated successfully",
+  "error": null
+}
+```
+
+You can also retrieve the full budget breakdown for a trip at any time:
+
+```http
+GET /api/trips/:tripId/budget
+```
 
 <Tip>
-  Set your target budget slightly below your true ceiling — the buffer gives you room to absorb unexpected expenses like visa fees, airport transfers, or spontaneous activities without flipping to an over-budget status.
+  Set your target budget slightly below your true spending ceiling — the buffer gives you room to absorb unexpected costs like visa fees, airport transfers, or spontaneous activities without flipping to an over-budget status.
 </Tip>

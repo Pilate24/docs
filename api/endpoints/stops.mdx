@@ -1,7 +1,7 @@
 ---
-title: "Trip Stops and Activities API"
-sidebarTitle: "Stops"
-description: "Reference for GlobeTrotter's Stops API — add, reorder, and remove city stops within a trip, and schedule or cancel activities at each stop."
+title: "Trip Stops and Activities — Full API Reference"
+sidebarTitle: "Stops & Activities"
+description: "Manage city stops and activities in a GlobeTrotter trip. Covers all 6 endpoints — add, reorder, update, delete stops, and schedule or remove activities."
 ---
 
 The Stops API manages the individual city stops that make up your multi-city itinerary, and the activities scheduled within each stop. All endpoints require authentication and ownership of the parent trip — a `403 Forbidden` response is returned if the trip belongs to a different user. Path parameters follow the pattern `/api/trips/:tripId/stops/:stopId`.
@@ -14,7 +14,7 @@ The Stops API manages the individual city stops that make up your multi-city iti
 
 ## POST /api/trips/:tripId/stops
 
-Add a new city stop to a trip. Each stop represents a single destination node in your itinerary — specifying arrival and departure dates, accommodation costs, and the mode of transport used to reach it.
+Add a new city stop to a trip. Each stop represents a single destination node in your itinerary — specifying arrival and departure dates, accommodation cost per night, and the mode of transport used to reach it.
 
 ### Path parameters
 
@@ -41,7 +41,7 @@ Add a new city stop to a trip. Each stop represents a single destination node in
 </ParamField>
 
 <ParamField body="accommodationCost" type="number">
-  Optional total accommodation cost (hotel, hostel, etc.) for the entire stay at this stop, in the trip's currency.
+  Optional nightly accommodation cost (hotel, hostel, Airbnb, etc.) per night for this stop, in the trip's currency. The budget engine multiplies this value by the number of nights to compute total lodging spend.
 </ParamField>
 
 <ParamField body="transportMode" type="string">
@@ -60,7 +60,7 @@ Add a new city stop to a trip. Each stop represents a single destination node in
   "stopOrder": 1,
   "arrivalDate": "2026-06-01",
   "departureDate": "2026-06-05",
-  "accommodationCost": 450,
+  "accommodationCost": 120,
   "transportMode": "FLIGHT",
   "transportCost": 320
 }
@@ -79,7 +79,7 @@ Add a new city stop to a trip. Each stop represents a single destination node in
     "arrivalDate": "2026-06-01",
     "departureDate": "2026-06-05",
     "durationNights": 4,
-    "accommodationCost": 450,
+    "accommodationCost": 120,
     "transportMode": "FLIGHT",
     "transportCost": 320
   },
@@ -155,6 +155,15 @@ Reorder all stops within a trip in a single request. Send the complete array of 
 }
 ```
 
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | Missing or malformed `stops` array |
+| `401`  | No active session |
+| `403`  | You do not own the parent trip |
+| `404`  | Trip not found |
+
 ---
 
 ## PUT /api/trips/:tripId/stops/:stopId
@@ -175,28 +184,28 @@ Update the details of a specific stop — adjust dates, costs, transport mode, o
 
 All fields are optional. Include only the fields you want to modify.
 
+<ParamField body="stopOrder" type="integer">
+  Updated position in the itinerary. Must be a positive integer.
+</ParamField>
+
 <ParamField body="arrivalDate" type="string">
-  Updated arrival date in ISO 8601 format.
+  Updated arrival date in ISO 8601 format (`YYYY-MM-DD`).
 </ParamField>
 
 <ParamField body="departureDate" type="string">
-  Updated departure date in ISO 8601 format.
-</ParamField>
-
-<ParamField body="stopOrder" type="integer">
-  Updated position in the itinerary.
+  Updated departure date in ISO 8601 format (`YYYY-MM-DD`).
 </ParamField>
 
 <ParamField body="accommodationCost" type="number">
-  Updated total accommodation cost for this stop.
+  Updated nightly accommodation cost for this stop, in the trip's currency.
 </ParamField>
 
 <ParamField body="transportMode" type="string">
-  Updated transport mode. Accepted values: `FLIGHT` | `TRAIN` | `BUS` | `DRIVE` | `FERRY` | `NONE`.
+  Updated transport mode used to reach this stop. Accepted values: `FLIGHT` | `TRAIN` | `BUS` | `DRIVE` | `FERRY` | `NONE`.
 </ParamField>
 
 <ParamField body="transportCost" type="number">
-  Updated transport cost to reach this stop.
+  Updated transport cost to reach this stop, in the trip's currency.
 </ParamField>
 
 ### Example request
@@ -204,7 +213,7 @@ All fields are optional. Include only the fields you want to modify.
 ```json title="PUT /api/trips/:tripId/stops/:stopId"
 {
   "departureDate": "2026-06-07",
-  "accommodationCost": 520,
+  "accommodationCost": 150,
   "transportMode": "TRAIN"
 }
 ```
@@ -220,7 +229,7 @@ All fields are optional. Include only the fields you want to modify.
     "arrivalDate": "2026-06-01",
     "departureDate": "2026-06-07",
     "durationNights": 6,
-    "accommodationCost": 520,
+    "accommodationCost": 150,
     "transportMode": "TRAIN",
     "transportCost": 320
   },
@@ -296,11 +305,11 @@ Schedule an activity from the GlobeTrotter activities catalogue to a specific st
 ### Request body
 
 <ParamField body="activityId" type="string" required>
-  UUID of the activity from the GlobeTrotter activities catalogue. Use `GET /api/destinations/:id` to browse activities available at a destination.
+  UUID of the activity from the GlobeTrotter activities catalogue. Use `GET /api/destinations/:id` to browse activities available at a destination, or `GET /api/activities` to search the full catalogue.
 </ParamField>
 
 <ParamField body="scheduledDate" type="string" required>
-  The date on which to schedule this activity, in ISO 8601 format (`YYYY-MM-DD`). Must fall within the stop's `arrivalDate` to `departureDate` range.
+  The date on which to schedule this activity, in ISO 8601 format (`YYYY-MM-DD`). Must fall within the stop's `arrivalDate` to `departureDate` range (inclusive).
 </ParamField>
 
 <ParamField body="startTime" type="string">
@@ -367,7 +376,7 @@ Remove a scheduled activity from a stop. The underlying activity in the catalogu
 </ParamField>
 
 <ParamField path="id" type="string" required>
-  UUID of the scheduled activity instance (`trip_stop_activity` record) to remove.
+  UUID of the scheduled activity instance to remove. This is the `id` returned in the `POST /activities` response, not the catalogue `activityId`.
 </ParamField>
 
 ### Example response
@@ -397,4 +406,17 @@ Remove a scheduled activity from a stop. The underlying activity in the catalogu
   - **Activity level:** `activity.scheduledDate` ≥ `stop.arrivalDate` AND `activity.scheduledDate` ≤ `stop.departureDate`
 
   Violations return a `400 Bad Request` response with a descriptive error message indicating which constraint was breached.
+</Accordion>
+
+<Accordion title="Transport mode values">
+  The `transportMode` field on a stop describes how you travel **to** that city. Valid values are:
+
+  | Value | Description |
+  |-------|-------------|
+  | `FLIGHT` | Commercial flight |
+  | `TRAIN` | Rail (high-speed, intercity, or regional) |
+  | `BUS` | Coach or long-distance bus |
+  | `DRIVE` | Self-drive or rental car |
+  | `FERRY` | Ferry, boat, or water crossing |
+  | `NONE` | No transport recorded (e.g. first stop or walking border crossing) |
 </Accordion>

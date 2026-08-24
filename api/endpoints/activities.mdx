@@ -1,27 +1,29 @@
 ---
-title: "Activities API — Browse the Activity Catalogue"
+title: "Activities API — Search and Filter the Catalogue"
 sidebarTitle: "Activities"
-description: "Search and filter GlobeTrotter's curated catalogue of 80+ activities by destination, category, cost, and duration across 6 continents."
+description: "Search GlobeTrotter's activity catalogue by destination, category, cost, and duration. Get the activity IDs you need to schedule items to a trip stop."
 ---
 
-The Activities API provides access to GlobeTrotter's curated catalogue of 80+ activities across 6 continents. Activities are linked to destinations and can be filtered by category, cost, and duration — making it straightforward to discover what's available at each stop in your itinerary before you commit to a schedule.
+The Activities API provides access to GlobeTrotter's curated catalogue of activities across destinations worldwide. Activities are linked to specific destinations and can be filtered by category, cost, and duration — making it easy to discover what's available at each stop in your itinerary before you commit to a schedule. This endpoint is publicly accessible; no authentication is required to browse or filter activities.
 
 ## GET /api/activities
 
-List and search activities from the global catalogue. This endpoint is publicly accessible — no authentication is required to browse or filter activities.
+List and search activities from the global catalogue. Filter by destination, category, cost ceiling, or duration to narrow results before scheduling them to a trip stop.
 
-### Query Parameters
+**Authentication:** Not required — this endpoint is public.
+
+### Query parameters
 
 <ParamField query="destinationId" type="string">
-  Filter activities to a specific destination. Pass the destination's UUID to scope results to a single city or region.
+  Filter activities to a specific destination. Pass the destination's UUID to scope results to a single city. Destination UUIDs are returned by `GET /api/destinations`.
 </ParamField>
 
 <ParamField query="category" type="string">
-  Filter by activity category. Accepted values: `cultural`, `outdoor`, `culinary`, `nightlife`, `shopping`, `wellness`, `adventure`.
+  Filter by activity category. Accepted values: `SIGHTSEEING` | `ADVENTURE` | `FOOD` | `CULTURE` | `RELAXATION` | `NIGHTLIFE`.
 </ParamField>
 
 <ParamField query="search" type="string">
-  Keyword search against activity titles. Partial matches are supported (e.g., `"food"` returns `"Street Food Tour"` and `"Food Market Walk"`).
+  Keyword search against activity titles. Partial matches are supported — for example, `"food"` returns `"Street Food Tour"` and `"Food Market Walk"`.
 </ParamField>
 
 <ParamField query="maxCost" type="number">
@@ -44,15 +46,45 @@ List and search activities from the global catalogue. This endpoint is publicly 
   Number of records to skip before returning results. Use with `limit` to paginate through large result sets.
 </ParamField>
 
-### Example Request
+### Response fields
 
-```http
-GET /api/activities?destinationId=dest-uuid&category=culinary&maxCost=60&sort=rating&limit=5
+<ResponseField name="data" type="array">
+  Array of activity objects matching the query filters.
+
+  <Expandable title="Activity object fields">
+    <ResponseField name="id" type="string">
+      Activity UUID. Pass this as `activityId` when scheduling the activity to a stop via `POST /api/trips/:tripId/stops/:stopId/activities`.
+    </ResponseField>
+    <ResponseField name="destinationId" type="string">
+      UUID of the destination this activity belongs to.
+    </ResponseField>
+    <ResponseField name="title" type="string">
+      Activity name, e.g. `"Street Food Tour in Shibuya"`.
+    </ResponseField>
+    <ResponseField name="category" type="string">
+      Activity category: `SIGHTSEEING` | `ADVENTURE` | `FOOD` | `CULTURE` | `RELAXATION` | `NIGHTLIFE`.
+    </ResponseField>
+    <ResponseField name="estimatedCost" type="number">
+      Estimated cost per person in USD. `0` for free activities.
+    </ResponseField>
+    <ResponseField name="durationMinutes" type="number">
+      Estimated duration of the activity in minutes.
+    </ResponseField>
+    <ResponseField name="rating" type="number">
+      Average traveller rating out of 5.0.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example request
+
+```http title="Find top-rated culinary activities under $60 at a destination"
+GET /api/activities?destinationId=dest-uuid&category=FOOD&maxCost=60&sort=rating&limit=5
 ```
 
-### Example Response
+### Example response
 
-```json
+```json title="200 OK"
 {
   "success": true,
   "data": [
@@ -60,7 +92,7 @@ GET /api/activities?destinationId=dest-uuid&category=culinary&maxCost=60&sort=ra
       "id": "act-uuid",
       "destinationId": "dest-uuid",
       "title": "Street Food Tour in Shibuya",
-      "category": "culinary",
+      "category": "FOOD",
       "estimatedCost": 45,
       "durationMinutes": 180,
       "rating": 4.7
@@ -72,22 +104,22 @@ GET /api/activities?destinationId=dest-uuid&category=culinary&maxCost=60&sort=ra
 ```
 
 <Note>
-  To schedule an activity to a trip stop, use `POST /api/trips/:tripId/stops/:stopId/activities` with the `activityId` from this response. The Activities API is read-only — it only provides discovery and filtering.
+  To schedule an activity to a trip stop, use `POST /api/trips/:tripId/stops/:stopId/activities` with the `activityId` from this response. The Activities API is read-only — it only supports discovery and filtering.
 </Note>
 
-### Response Codes
+### Response codes
 
 | Status | Meaning |
 |--------|---------|
 | `200`  | Success — returns an array of matching activities (empty array if none match) |
-| `400`  | Invalid query parameter value (e.g., unrecognised `category` or non-numeric `maxCost`) |
+| `400`  | Invalid query parameter value (e.g. unrecognised `category` or non-numeric `maxCost`) |
 | `500`  | Internal server error |
 
-### Pagination Pattern
+### Pagination pattern
 
 Combine `limit` and `offset` to page through the full catalogue:
 
-```http
+```http title="Page through the activity catalogue"
 # Page 1 — first 20 results
 GET /api/activities?limit=20&offset=0
 
@@ -99,25 +131,25 @@ GET /api/activities?limit=20&offset=20
   Pair `destinationId` with `sort=rating` to surface the highest-rated things to do at a specific stop before you lock in your itinerary dates.
 </Tip>
 
-### Category Reference
+### Category reference
 
 <CardGroup cols={2}>
-  <Card title="cultural" icon="landmark">
-    Museums, historical sites, art galleries, and cultural experiences.
+  <Card title="SIGHTSEEING" icon="landmark">
+    Landmark visits, viewpoints, and scenic spots.
   </Card>
-  <Card title="outdoor" icon="tree">
-    Hiking, cycling, nature walks, parks, and scenic viewpoints.
+  <Card title="ADVENTURE" icon="bolt">
+    Extreme sports, water activities, hiking, and high-adrenaline experiences.
   </Card>
-  <Card title="culinary" icon="utensils">
+  <Card title="FOOD" icon="utensils">
     Food tours, cooking classes, market visits, and tasting experiences.
   </Card>
-  <Card title="nightlife" icon="moon">
+  <Card title="CULTURE" icon="palette">
+    Museums, temples, art galleries, and historical sites.
+  </Card>
+  <Card title="RELAXATION" icon="spa">
+    Spas, beaches, parks, and leisurely pursuits.
+  </Card>
+  <Card title="NIGHTLIFE" icon="moon">
     Bars, clubs, live music venues, and evening entertainment.
-  </Card>
-  <Card title="shopping" icon="bag-shopping">
-    Markets, boutiques, souvenirs, and retail districts.
-  </Card>
-  <Card title="adventure" icon="bolt">
-    Extreme sports, water activities, skydiving, and high-adrenaline experiences.
   </Card>
 </CardGroup>

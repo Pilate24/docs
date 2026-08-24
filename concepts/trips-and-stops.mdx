@@ -1,7 +1,7 @@
 ---
-title: "Trips, Stops, and Itinerary Structure"
+title: "Trip, Stop, and Activity Data Models Explained"
 sidebarTitle: "Trips & Stops"
-description: "Learn how GlobeTrotter structures travel plans: Trips are the top-level container, each composed of sequential Stops and per-stop Activities."
+description: "Learn how GlobeTrotter structures travel plans: every Trip holds sequential Stops for city visits, each with its own Activities, dates, and costs."
 ---
 
 GlobeTrotter organises every travel plan around a three-level hierarchy: a **Trip** is the top-level container that holds all your high-level settings (dates, budget, visibility); each Trip contains one or more **Stops** representing individual city visits with their own arrival and departure dates; and each Stop holds **Activities** — the specific experiences you schedule during that city stay. Understanding this model will help you plan, edit, and share itineraries with confidence.
@@ -14,7 +14,7 @@ A Trip is the root of your travel plan. When you create a trip, you define its t
 |---|---|---|---|
 | `title` | Yes | 3–100 characters | Used to auto-generate the sharing slug |
 | `startDate` | Yes | ISO date string | Must be ≤ `endDate` |
-| `endDate` | Yes | ISO date string | Max 90 days after `startDate` |
+| `endDate` | Yes | ISO date string | Must be ≥ `startDate` |
 | `targetBudget` | No | Number, default `0` | Used for budget variance calculation |
 | `currency` | No | String, default `USD` | Applied to all cost displays |
 | `description` | No | Free text | General notes and group reminders |
@@ -37,7 +37,7 @@ Trip status is derived automatically from the current date relative to the trip'
 
 ## Stops
 
-Each Stop represents a city visit within your trip. Stops are sequential — they are ordered by `stopOrder` and their dates must be continuous and non-overlapping. When you add a stop, you specify the destination, arrival and departure dates, how you're getting there, and how much accommodation costs.
+Each Stop represents a city visit within your trip. Stops are sequential — they are ordered by `stopOrder` and their dates must be continuous and non-overlapping. When you add a stop, you specify the destination, arrival and departure dates, how you're getting there, and how much accommodation costs per night.
 
 | Field | Required | Constraints | Notes |
 |---|---|---|---|
@@ -47,7 +47,7 @@ Each Stop represents a city visit within your trip. Stops are sequential — the
 | `stopOrder` | Yes | Integer, min `1` | Determines sequence in the itinerary |
 | `transportMode` | No | Enum (see below) | How you're arriving at this city |
 | `transportCost` | No | Number | Cost for the leg into this city |
-| `accommodationCost` | No | Number | Flat total cost for lodging at this stop |
+| `accommodationCost` | No | Number | Nightly lodging rate for this stop; multiplied by the number of nights to compute total lodging cost |
 
 ### Transport Modes
 
@@ -69,7 +69,7 @@ Activities are the day-level building blocks of a stop. Each activity is schedul
 | Field | Required | Notes |
 |---|---|---|
 | `title` | Yes | Activity name (catalogue title or custom) |
-| `category` | Yes | e.g., `cultural`, `outdoor`, `culinary`, `nightlife` |
+| `category` | Yes | One of: `SIGHTSEEING`, `ADVENTURE`, `FOOD`, `CULTURE`, `RELAXATION`, `NIGHTLIFE` |
 | `estimatedCost` | No | Default cost from the activity catalogue |
 | `customCost` | No | Overrides `estimatedCost` for budget calculations |
 | `duration` | No | Duration in minutes |
@@ -89,24 +89,24 @@ Trip: "Summer Euro-Trip 2026"
 │
 ├── Stop 1 — Paris, France  (Sep 12 → Sep 15)
 │   ├── transportMode: FLIGHT    transportCost: $480
-│   ├── accommodationCost: $360
-│   ├── Activity: Louvre Museum       (Sep 12, 10:00)
-│   ├── Activity: Eiffel Tower Tour   (Sep 13, 14:00)
-│   └── Activity: Seine River Cruise  (Sep 14, 18:00)
+│   ├── accommodationCost: $120/night  (3 nights = $360)
+│   ├── Activity: Louvre Museum       (Sep 12, 10:00) — CULTURE
+│   ├── Activity: Eiffel Tower Tour   (Sep 13, 14:00) — SIGHTSEEING
+│   └── Activity: Seine River Cruise  (Sep 14, 18:00) — SIGHTSEEING
 │
 ├── Stop 2 — Rome, Italy  (Sep 15 → Sep 19)
 │   ├── transportMode: TRAIN     transportCost: $95
-│   ├── accommodationCost: $440
-│   ├── Activity: Colosseum Tour      (Sep 15, 09:00)
-│   ├── Activity: Vatican Museums     (Sep 16, 10:00)
-│   └── Activity: Trastevere Food Walk (Sep 17, 19:00)
+│   ├── accommodationCost: $110/night  (4 nights = $440)
+│   ├── Activity: Colosseum Tour      (Sep 15, 09:00) — CULTURE
+│   ├── Activity: Vatican Museums     (Sep 16, 10:00) — SIGHTSEEING
+│   └── Activity: Trastevere Food Walk (Sep 17, 19:00) — FOOD
 │
 └── Stop 3 — Barcelona, Spain  (Sep 19 → Sep 24)
     ├── transportMode: FLIGHT    transportCost: $110
-    ├── accommodationCost: $600
-    ├── Activity: Sagrada Família     (Sep 19, 11:00)
-    ├── Activity: Park Güell          (Sep 20, 10:00)
-    └── Activity: Gothic Quarter Walk (Sep 21, 15:00)
+    ├── accommodationCost: $120/night  (5 nights = $600)
+    ├── Activity: Sagrada Família     (Sep 19, 11:00) — SIGHTSEEING
+    ├── Activity: Park Güell          (Sep 20, 10:00) — SIGHTSEEING
+    └── Activity: Gothic Quarter Walk (Sep 21, 15:00) — CULTURE
 ```
 
 ---
@@ -120,5 +120,4 @@ GlobeTrotter enforces the following date constraints to keep your itinerary logi
 - A stop's `departureDate` must be **on or after** its own `arrivalDate`.
 - The `arrivalDate` of Stop N+1 must be **on or after** the `departureDate` of Stop N — stops cannot overlap.
 - All stop dates must fall **within** the overall trip `startDate` and `endDate` range.
-- Maximum trip duration is **90 days** (from `startDate` to `endDate` inclusive).
 </Note>

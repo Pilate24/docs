@@ -1,31 +1,38 @@
 ---
-title: "Visualize Your Trip on a Calendar and Timeline View"
+title: "Calendar and Timeline View for Your Trip — GlobeTrotter"
 sidebarTitle: "Calendar & Timeline"
-description: "See your entire itinerary at a glance — city stays as color-coded spans, activities as day chips — and reschedule by dragging directly on the calendar."
+description: "See city stays as colour-coded spans and activities as day chips in monthly, weekly, or daily views — reschedule anything by dragging it to a new date."
 ---
 
-The Calendar & Timeline view turns your itinerary into a visual schedule so you can understand the shape of your trip at a glance. City stays appear as color-coded spans across the calendar grid, and activities appear as chips on their scheduled days. You can read your plan, check for gaps or overlaps, reschedule activities by dragging them to a new day, and drill into any date with a single click.
+The Calendar & Timeline view turns your itinerary into a visual schedule so you can understand the shape of your trip at a glance. City stays appear as colour-coded spans across the calendar grid, and activities appear as chips on their scheduled days. You can read your plan, check for gaps or overlaps, reschedule activities by dragging them to a new day, and drill into any date with a single click.
 
 ## Accessing the Calendar
 
-Open a trip from **My Trips**, then click the **Calendar** tab in the trip navigation bar. The calendar loads with the current month in view, anchored to your trip's start date.
+Open a trip from **My Trips**, then click the **Calendar** tab in the trip navigation bar. The calendar loads in the monthly view by default, anchored to your trip's start date.
 
 ## Calendar Views
 
 <Tabs>
   <Tab title="Monthly View">
-    The monthly view displays a full calendar month grid with your entire trip's shape visible at once.
+    The monthly view displays a full 30-day grid with your entire trip's shape visible at once.
 
-    - **City stay spans** render as colored horizontal bands stretching across consecutive days — each city gets a distinct color so overlapping transitions are easy to spot.
-    - **Activity chips** sit inside individual date cells, showing the activity name. If a day has more than three activities, an overflow badge (e.g., **+2 more**) appears — click it to expand.
+    - **City stay spans** render as coloured horizontal bands stretching across consecutive days — each city gets a distinct colour so overlapping transitions are easy to spot.
+    - **Activity chips** sit inside individual date cells, showing the activity count for that day.
     - **Best for:** seeing the big picture, checking how cities connect across weeks, and spotting under-scheduled or over-packed days.
   </Tab>
   <Tab title="Weekly View">
-    The weekly view displays a 7-day grid with significantly more vertical space per day.
+    The weekly view displays a 7-day grid, showing one week at a time.
 
-    - **City stay bands** still appear at the top of each column.
-    - **Timed activity blocks** render as stacked cards showing the activity name, start time, and duration — similar to a calendar app's day view compressed into a week.
-    - **Best for:** fine-tuning a single week, managing a dense schedule, and verifying that activity times don't conflict within a day.
+    - **City stay bands** appear across the top of the weekly grid to show which stop you are in on each day.
+    - **Activity chips** are displayed within each day column, showing the number of activities scheduled.
+    - **Best for:** fine-tuning a single week, managing a dense schedule, and verifying that activities are spread well across days.
+  </Tab>
+  <Tab title="Daily View">
+    The daily view displays a single date in full detail.
+
+    - **City stop information** shows which destination you are in for that day.
+    - **All activities** for the day are listed with their titles and details.
+    - **Best for:** reviewing the complete plan for one specific day before or during travel.
   </Tab>
 </Tabs>
 
@@ -33,38 +40,38 @@ Open a trip from **My Trips**, then click the **Calendar** tab in the trip navig
 
 Understanding the visual language of the calendar makes it faster to review your plan:
 
-- **City span bands** stretch from arrival to departure for each stop. The band color corresponds to the city, and the city name label appears at the left edge of the span.
-- **Activity chips** display the activity name. Click any chip to open a detail popover showing the full activity name, category, scheduled time, duration, and cost.
-- **Overflow badges** appear when more activities are scheduled on a day than fit in the grid cell. Click the badge to reveal the full list for that day.
+- **City span bands** stretch from arrival to departure for each stop. The band colour corresponds to the city, making it easy to see at a glance how long you spend in each destination.
+- **Activity count** is displayed inside each date cell. Days with at least one activity show a count badge in blue.
+- **Empty days** are shown in a neutral background — a quick visual cue that no activities are scheduled for that date yet.
 
 ## Drag and Reschedule
 
 To move an activity to a different day, drag its chip to any other date cell within the **same stop's date range**. GlobeTrotter updates the scheduled date automatically and recalculates any time-sensitive budget or conflict warnings.
 
 <Note>
-  You can only drag an activity to a date that still falls within the city stop it belongs to. To move an activity to a different city, remove it from the current stop and schedule it fresh to the new one via the Itinerary Builder.
+  You can only drag an activity to a date that still falls within the city stop it belongs to. To move an activity to a different city, remove it from the current stop in the Itinerary Builder and schedule it fresh to the new stop.
 </Note>
 
 ## Day Detail Drawer
 
-Click any date on the calendar to open the **Day Detail Drawer** — a slide-over panel on the right side of the screen. The drawer shows the complete schedule for that day:
+Click any date on the calendar to open the **Day Detail Drawer** — a slide-over panel that shows the complete schedule for that day:
 
-- All activities in chronological order, each with its start time, category icon, duration, and cost
-- The city stop you're in for that date
+- All activities in chronological order, each with its title, category, duration, and cost
+- The city stop you are in for that date
 - The daily cost subtotal for all activities combined
 
-The Day Detail Drawer is read-optimized. To add or remove activities, close the drawer and switch to the **Builder** tab.
+The Day Detail Drawer is read-optimised for reviewing your plan. To add or remove activities, switch to the **Builder** tab.
 
 ## Itinerary View Modes
 
-The **structured itinerary view** — accessible from the **View Itinerary** button in the trip header — offers three display modes optimized for different reading contexts:
+The **structured itinerary view** — accessible via **View Itinerary** in the trip header — offers three display modes optimised for different reading contexts:
 
 <CardGroup cols={3}>
   <Card title="Timeline View" icon="timeline">
     A vertical, day-by-day reading view with connecting nodes and timestamps. Best for following your plan on the road.
   </Card>
   <Card title="City Cards View" icon="map-pin">
-    Activities grouped by city stop. Best for reviewing what's planned at each destination without worrying about exact dates.
+    Activities grouped by city stop. Best for reviewing what is planned at each destination without worrying about exact dates.
   </Card>
   <Card title="Compact Agenda View" icon="list">
     A condensed list format showing all activities across all cities in chronological order. Best on mobile or for sharing a quick overview.
@@ -72,5 +79,5 @@ The **structured itinerary view** — accessible from the **View Itinerary** but
 </CardGroup>
 
 <Note>
-  The calendar is optimized for reading and rescheduling. To add new activities or remove existing ones, use the **Itinerary Builder** (Builder tab) — any changes you make there reflect in the calendar immediately without a page reload.
+  The calendar is optimised for reading and rescheduling. To add new activities or remove existing ones, use the **Itinerary Builder** (Builder tab) — any changes made there are reflected in the calendar immediately without a page reload.
 </Note>

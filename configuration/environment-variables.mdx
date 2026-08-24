@@ -1,10 +1,10 @@
 ---
-title: "GlobeTrotter Environment Variables Reference"
+title: "Environment Variables for GlobeTrotter"
 sidebarTitle: "Environment Variables"
-description: "A complete reference of all required and optional environment variables needed to configure and run GlobeTrotter locally or in production."
+description: "Configure GlobeTrotter with the correct environment variables for local development and production. Covers database, session security, and Google OAuth."
 ---
 
-GlobeTrotter is configured entirely via environment variables. Create a `.env.local` file in the `globetrotter-app/` directory — copy from `.env.example` as your starting point — and set the values described below before running the development server or building for production.
+GlobeTrotter is configured entirely through environment variables. Before starting the development server or building for production, create a `.env.local` file in the `globetrotter-app/` directory. Copy `.env.example` as your starting point and fill in the values described below.
 
 ## Required Variables
 
@@ -12,22 +12,22 @@ These variables must be present at runtime. GlobeTrotter will not start correctl
 
 | Variable | Description | Example |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/globetrotter` |
-| `NEXTAUTH_SECRET` | Random secret for signing sessions (minimum 32 characters) | Generate with: `openssl rand -base64 32` |
-| `NEXTAUTH_URL` | The public base URL of your app | `http://localhost:3000` |
+| `DATABASE_URL` | PostgreSQL connection string used by Prisma to connect to your database | `postgresql://user:pass@localhost:5432/globetrotter` |
+| `NEXTAUTH_SECRET` | Random secret used by NextAuth to sign and verify session tokens. Must be at least 32 characters. | Generate with: `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | The public base URL of your app. NextAuth uses this for OAuth redirect URIs and cookie scoping. | `http://localhost:3000` |
 
 ## Optional Variables
 
-Omitting these variables disables the corresponding feature rather than causing an error.
+Omitting these variables disables the corresponding feature rather than causing a startup error.
 
 | Variable | Description | Default |
 |---|---|---|
-| `GOOGLE_CLIENT_ID` | Google OAuth application client ID | — (Google sign-in disabled if absent) |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth application client secret | — |
+| `GOOGLE_CLIENT_ID` | Google OAuth application client ID. Required only if you want to enable Sign in with Google. | — (Google sign-in disabled if absent) |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth application client secret. Required alongside `GOOGLE_CLIENT_ID`. | — |
 
 ## Generating `NEXTAUTH_SECRET`
 
-Run the following command in your terminal to generate a cryptographically secure secret. Copy the output and paste it as the value of `NEXTAUTH_SECRET`.
+Run the following command in your terminal to produce a cryptographically secure random string. Copy the output and paste it as the value of `NEXTAUTH_SECRET`.
 
 ```bash
 openssl rand -base64 32
@@ -35,7 +35,7 @@ openssl rand -base64 32
 
 ## Example `.env.local`
 
-```bash .env.local
+```bash
 DATABASE_URL="postgresql://postgres:password@localhost:5432/globetrotter"
 NEXTAUTH_SECRET="your-random-secret-here"
 NEXTAUTH_URL="http://localhost:3000"
@@ -44,9 +44,56 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 ```
 
 <Warning>
-  Never commit `.env.local` to version control. It contains sensitive credentials. The file is already listed in `.gitignore` — do not remove it from there.
+  Never commit `.env.local` to version control. It contains sensitive
+  credentials. The file is already listed in `.gitignore` — do not remove it
+  from there.
 </Warning>
 
 <Note>
-  For production deployments on Vercel, set these variables in the Vercel dashboard under **Project → Settings → Environment Variables** rather than in a file. Vercel injects them into your build and runtime environment automatically.
+  For production deployments on Vercel, set these variables in the Vercel
+  dashboard under **Project → Settings → Environment Variables** rather than
+  in a file. Vercel injects them into your build and runtime environment
+  automatically. See the [Deployment](/configuration/deployment) guide for
+  the full list of production values.
 </Note>
+
+## What Each Variable Does
+
+<Accordion title="DATABASE_URL">
+  Prisma reads this variable at startup to open a connection pool to your
+  PostgreSQL database. The format is a standard PostgreSQL URI:
+
+  ```text
+  postgresql://USERNAME:PASSWORD@HOST:PORT/DATABASE_NAME
+  ```
+
+  For a local default installation the host is `localhost`, the port is
+  `5432`, and the username is typically `postgres`. See the
+  [Database Setup](/configuration/database-setup) guide for options including
+  Docker and cloud providers.
+</Accordion>
+
+<Accordion title="NEXTAUTH_SECRET">
+  NextAuth uses this value to sign session JWTs and CSRF tokens. Without it,
+  every request that touches an authentication endpoint will fail with a
+  configuration error. Generate a new secret for each environment
+  (development, staging, production) and never reuse them.
+</Accordion>
+
+<Accordion title="NEXTAUTH_URL">
+  NextAuth constructs absolute callback URLs using this value — for example,
+  the Google OAuth redirect URI becomes `{NEXTAUTH_URL}/api/auth/callback/google`.
+  In development this is `http://localhost:3000`. In production, set it to
+  your exact deployed domain including the protocol and without a trailing
+  slash.
+</Accordion>
+
+<Accordion title="GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET">
+  These credentials come from a Google Cloud Console OAuth 2.0 application.
+  To create one, navigate to **APIs & Services → Credentials → Create
+  Credentials → OAuth client ID** in the [Google Cloud Console](https://console.cloud.google.com/).
+  Select **Web application** as the application type and add
+  `{NEXTAUTH_URL}/api/auth/callback/google` as an authorized redirect URI.
+  If you leave these variables unset, the Google sign-in button is simply
+  hidden — email/password and demo login still work normally.
+</Accordion>

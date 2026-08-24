@@ -1,10 +1,10 @@
 ---
-title: "Discovering Destinations and Activities"
+title: "Discovering Destinations and Activities in GlobeTrotter"
 sidebarTitle: "Discovery"
-description: "Explore GlobeTrotter's curated catalogue of 20+ global destinations and 80+ activities — searchable, filterable, and instantly addable to any itinerary."
+description: "Browse GlobeTrotter's curated destination and activity catalogue — filter by continent, cost index, or category and add results to your trip instantly."
 ---
 
-GlobeTrotter ships with a curated catalogue of 20+ global destinations and 80+ activities spanning 6 continents — all searchable and filterable directly from the UI without leaving your planning workflow. Whether you're researching your next adventure or filling out a stop with things to do, the Discovery section gives you the context you need: daily cost estimates, popularity scores, activity categories, and one-click "Add to Trip" shortcuts.
+GlobeTrotter ships with a curated catalogue of destinations and activities spanning six continents — all searchable and filterable directly from the UI without leaving your planning workflow. Whether you're researching your next adventure or filling out a stop with things to do, the Discovery section gives you the context you need: daily cost estimates, popularity scores, activity categories, and one-click "Add to Trip" shortcuts.
 
 ## Destinations
 
@@ -19,7 +19,7 @@ The destinations catalogue is your reference library of cities and regions avail
 | `continent` | One of: Africa, Asia, Europe, North America, South America, Oceania |
 | `costIndex` | A tiered cost rating: `BUDGET`, `MODERATE`, or `LUXURY` |
 | `popularityScore` | Integer from 1–10 indicating traveller demand |
-| `avgDailyCost` | Estimated average spend per day in the destination's local currency |
+| `avgDailyCost` | Estimated average spend per day in USD |
 | `latitude` / `longitude` | Coordinates used to pin the destination on the Leaflet map view |
 
 ### Cost Index Reference
@@ -53,7 +53,7 @@ The activities catalogue lets you discover and evaluate experiences at each dest
 
 | Field | Description |
 |---|---|
-| `title` | Name of the activity (e.g., "Louvre Museum", "Street Food Tour") |
+| `title` | Name of the activity (e.g., "Eiffel Tower Entry", "Sushi Masterclass") |
 | `category` | One of the six categories listed below |
 | `estimatedCost` | Typical per-person cost in USD |
 | `duration` | Expected duration in minutes |
@@ -63,26 +63,23 @@ The activities catalogue lets you discover and evaluate experiences at each dest
 ### Activity Categories
 
 <CardGroup cols={3}>
-  <Card title="Cultural" icon="landmark">
-    Museums, historical sites, galleries, and heritage attractions.
+  <Card title="Sightseeing" icon="binoculars">
+    Iconic landmarks, scenic viewpoints, and must-see attractions.
   </Card>
-  <Card title="Outdoor" icon="tree">
-    Parks, hikes, nature reserves, and scenic viewpoints.
+  <Card title="Culture" icon="landmark">
+    Museums, historical sites, galleries, and heritage experiences.
   </Card>
-  <Card title="Culinary" icon="utensils">
+  <Card title="Food" icon="utensils">
     Food tours, cooking classes, local market visits, and tastings.
+  </Card>
+  <Card title="Adventure" icon="person-hiking">
+    Hikes, extreme sports, rafting, and outdoor challenges.
+  </Card>
+  <Card title="Relaxation" icon="spa">
+    Spas, wellness retreats, hot springs, and slow-travel experiences.
   </Card>
   <Card title="Nightlife" icon="martini-glass">
     Bars, clubs, rooftop lounges, and evening entertainment.
-  </Card>
-  <Card title="Shopping" icon="bag-shopping">
-    Local markets, boutiques, souvenir districts, and malls.
-  </Card>
-  <Card title="Wellness" icon="spa">
-    Spas, yoga retreats, hot springs, and mindfulness experiences.
-  </Card>
-  <Card title="Adventure" icon="person-hiking">
-    Extreme sports, rafting, skydiving, zip-lining, and similar.
   </Card>
 </CardGroup>
 
@@ -91,7 +88,7 @@ The activities catalogue lets you discover and evaluate experiences at each dest
 | Filter | Description |
 |---|---|
 | **Destination** | Show only activities belonging to a specific city |
-| **Category** | Filter by one of the seven activity categories |
+| **Category** | Filter by one of the six activity categories |
 | **Price Range** | Maximum estimated cost (e.g., under $50) |
 | **Duration** | Maximum activity duration (e.g., under 3 hours) |
 
@@ -119,5 +116,5 @@ From any destination or activity card, click **"Add to Trip"** to open the itine
 ---
 
 <Info>
-The catalogue is curated and pre-seeded by the GlobeTrotter team. If you'd like a specific destination or activity added that isn't in the catalogue yet, contact your platform administrator — they can add new entries directly via the Admin Dashboard.
+The catalogue is curated and maintained by the GlobeTrotter team. If you'd like a specific destination or activity added that isn't in the catalogue yet, contact your platform administrator — they can add new entries directly via the Admin Dashboard.
 </Info>

@@ -1,10 +1,10 @@
 ---
 title: "Set Up the GlobeTrotter Database"
 sidebarTitle: "Database Setup"
-description: "Configure PostgreSQL 15+, run Prisma migrations, and seed initial destination and demo account data for your GlobeTrotter instance."
+description: "Configure PostgreSQL, run Prisma migrations, and seed destination and demo account data for your GlobeTrotter instance in three commands."
 ---
 
-GlobeTrotter uses PostgreSQL 15+ with Prisma ORM to manage all trip, destination, user, and expense data. You need a running PostgreSQL database before starting the app — choose from a local installation, a Docker container, or a cloud provider such as Supabase or Neon.
+GlobeTrotter uses PostgreSQL with Prisma ORM to manage all trip, destination, user, and expense data. You need a running PostgreSQL database before starting the app. Choose from a local installation, a Docker container, or a cloud provider such as Supabase or Neon.
 
 ## Choose Your Database Option
 
@@ -33,7 +33,7 @@ GlobeTrotter uses PostgreSQL 15+ with Prisma ORM to manage all trip, destination
     </Steps>
   </Tab>
   <Tab title="Docker">
-    If you have Docker installed, spin up a pre-configured PostgreSQL 15 container with a single command:
+    If you have Docker installed, spin up a PostgreSQL 15 container with a single command:
 
     ```bash
     docker run --name globetrotter-db \
@@ -49,7 +49,7 @@ GlobeTrotter uses PostgreSQL 15+ with Prisma ORM to manage all trip, destination
     DATABASE_URL="postgresql://postgres:password@localhost:5432/globetrotter"
     ```
 
-    The container starts automatically and binds to port `5432` on your local machine.
+    The container starts immediately and binds to port `5432` on your local machine.
   </Tab>
   <Tab title="Supabase / Neon (Cloud)">
     Cloud-hosted PostgreSQL is the fastest way to get a production-ready database with no local setup.
@@ -70,7 +70,7 @@ cd globetrotter-app
 npx prisma migrate dev
 ```
 
-Prisma reads the migration files under `prisma/migrations/` and applies any that have not yet been run against your database. On a fresh database, this creates every table from scratch.
+Prisma reads the migration files under `prisma/migrations/` and applies any that have not yet run against your database. On a fresh database this creates every table from scratch.
 
 ## Seed the Database
 
@@ -80,30 +80,42 @@ After migrations complete, populate the database with curated travel content and
 npx prisma db seed
 ```
 
-The seed script creates:
+The seed script inserts initial destination entries, activities, and the two demo user accounts needed for testing.
 
-- **20+ destinations** across 6 continents with coordinates, descriptions, and cover images
-- **80+ activities** linked to those destinations, spanning culture, adventure, food, and nightlife categories
-- **2 sample trips** demonstrating multi-city itineraries, expense tracking, and budget charts
-- **2 demo user accounts** for testing:
-  - `user@globetrotter.com` / `password123` — standard USER role
-  - `admin@globetrotter.com` / `password123` — ADMIN role with access to the admin dashboard
+<Note>
+  The seed script creates a baseline dataset to get you started. You can
+  extend `prisma/seed.ts` to add more destinations, activities, or sample
+  trips for richer local development and demo data.
+</Note>
+
+### Demo Accounts
+
+After seeding, two accounts are available for immediate use:
+
+| Email | Password | Role |
+|---|---|---|
+| `user@globetrotter.com` | `password123` | USER — standard traveler account |
+| `admin@globetrotter.com` | `password123` | ADMIN — access to the admin analytics dashboard |
 
 ## Database Schema Overview
 
-The following tables make up the GlobeTrotter data model:
+The following tables make up the GlobeTrotter data model. These are created by Prisma migrations from `prisma/schema.prisma` — that file is the single source of truth for the database structure.
 
 | Table | Description |
 |---|---|
 | `users` | User accounts and profiles |
-| `trips` | Trip headers (title, dates, budget, status) |
-| `trip_stops` | City stops within a trip |
-| `destinations` | Curated city catalogue |
-| `activities` | Curated activity catalogue |
-| `trip_stop_activities` | Activities scheduled to specific stops |
-| `trip_expenses` | Expense records per trip |
-| `user_saved_destinations` | User bucket list / saved cities |
+| `trips` | Trip headers (title, dates, budget, visibility) |
+| `trip_stops` | City stops within a trip, each linked to a destination |
+| `destinations` | Curated city catalogue with coordinates and cost data |
+| `activities` | Curated activity catalogue linked to destinations |
+| `trip_stop_activities` | Activities scheduled to specific stops on a trip |
+| `trip_expenses` | Expense records per trip for budget tracking |
+| `user_saved_destinations` | User bucket list of saved cities |
 
 <Note>
-  All multi-table write operations — such as trip cloning — use Prisma transactions (`prisma.$transaction()`) to maintain ACID integrity. If any step in a compound write fails, the entire operation rolls back, ensuring no orphaned records are left in the database.
+  All multi-table write operations — such as cloning a trip with all its
+  stops and activities — use Prisma transactions (`prisma.$transaction()`) to
+  maintain ACID integrity. If any step in a compound write fails, the entire
+  operation rolls back automatically, ensuring no orphaned records are left in
+  the database.
 </Note>

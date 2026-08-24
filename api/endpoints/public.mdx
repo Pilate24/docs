@@ -1,25 +1,25 @@
 ---
-title: "Public Trips API — View and Clone Shared Itineraries"
+title: "Public Trip Sharing API — View and Clone Itineraries"
 sidebarTitle: "Public"
-description: "Read publicly shared GlobeTrotter trip itineraries by slug and clone them into your own account with a single authenticated API call."
+description: "Fetch publicly shared GlobeTrotter itineraries by URL slug and clone any public trip into your own account with a single authenticated request."
 ---
 
-The Public Trips API gives unauthenticated access to publicly shared trips by their slug, and allows authenticated users to clone a public trip into their own account. Use these endpoints to build shareable itinerary pages, embed trip previews, or let users import community-created travel plans in one click.
+The Public Trips API has two purposes: serving shared itinerary pages to any visitor without requiring a login, and letting authenticated users clone a public trip into their own account in one request. Both endpoints use a URL-safe `slug` that appears at `https://globetrotter.app/shared/{slug}` — the same link shown on the in-app share screen.
 
 ## GET /api/public/trips/:slug
 
-Retrieve a full read-only view of a publicly shared trip using its URL slug. No authentication is required — this endpoint is open to all callers.
+Retrieve a full read-only view of a publicly shared trip by its slug. No authentication is required — any caller can access this endpoint.
 
 ### Path Parameters
 
 <ParamField path="slug" type="string" required>
-  The URL-safe slug from the trip's share URL (e.g., `japan-autumn-tour-1234`). Slugs are generated automatically when a trip is made public and appear in the vanity URL shown on the share screen.
+  The URL-safe slug from the trip's share link (e.g., `japan-autumn-tour-a8f9`). Slugs are auto-generated when a trip owner toggles their trip to public and appear in the share URL displayed on the itinerary share screen: `https://globetrotter.app/shared/{slug}`.
 </ParamField>
 
 ### Example Request
 
 ```http
-GET /api/public/trips/japan-autumn-tour-1234
+GET /api/public/trips/japan-autumn-tour-a8f9
 ```
 
 ### Example Response
@@ -28,17 +28,38 @@ GET /api/public/trips/japan-autumn-tour-1234
 {
   "success": true,
   "data": {
-    "id": "uuid",
+    "id": "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a",
     "title": "Japan Autumn Tour",
-    "slug": "japan-autumn-tour-1234",
+    "slug": "japan-autumn-tour-a8f9",
     "isPublic": true,
     "startDate": "2025-10-01",
     "endDate": "2025-10-14",
+    "coverImageUrl": "https://example.com/japan-cover.jpg",
     "stops": [
       {
-        "destination": { "name": "Tokyo", "country": "Japan" },
+        "stopOrder": 1,
         "arrivalDate": "2025-10-01",
         "departureDate": "2025-10-07",
+        "destination": {
+          "name": "Tokyo",
+          "country": "Japan"
+        },
+        "activities": [
+          {
+            "title": "Senso-ji Temple Visit",
+            "category": "CULTURE",
+            "durationMinutes": 120
+          }
+        ]
+      },
+      {
+        "stopOrder": 2,
+        "arrivalDate": "2025-10-07",
+        "departureDate": "2025-10-14",
+        "destination": {
+          "name": "Kyoto",
+          "country": "Japan"
+        },
         "activities": []
       }
     ]
@@ -57,28 +78,28 @@ GET /api/public/trips/japan-autumn-tour-1234
 | `500`  | Internal server error |
 
 <Info>
-  Cost and budget fields are intentionally omitted from the public trip response to protect the trip owner's financial data. To access budget details, authenticate and query `GET /api/trips/:tripId/budget` against a trip you own.
+  Individual stop costs and overall budget figures are not included in the public trip response to protect the trip owner's financial data. To access budget details for a trip you own, use `GET /api/trips/:tripId/budget`.
 </Info>
 
 ---
 
 ## POST /api/public/trips/:slug/clone
 
-Clone a public trip into your own account. The clone is a complete, independent deep copy — all stops, activities, and expenses are duplicated in a single atomic transaction. Authentication is required.
+Clone a public trip into your own account. The operation is a complete deep copy — all stops, scheduled activities, and expense records are duplicated in a single atomic transaction. Authentication is required for this endpoint.
 
 ### Path Parameters
 
 <ParamField path="slug" type="string" required>
-  The URL-safe slug of the public trip you want to clone. Use the same slug returned by `GET /api/public/trips/:slug`.
+  The URL-safe slug of the public trip you want to clone. Use the slug returned by `GET /api/public/trips/:slug` or taken directly from a share URL.
 </ParamField>
 
 ### Request Body
 
-No request body is needed. Send the request with an empty body.
+No request body is required. Send the request with your active session cookie and an empty body.
 
 ```http
-POST /api/public/trips/japan-autumn-tour-1234/clone
-Authorization: Bearer <session-token>
+POST /api/public/trips/japan-autumn-tour-a8f9/clone
+Cookie: next-auth.session-token=<your-session-token>
 ```
 
 ### Example Response
@@ -87,11 +108,14 @@ Authorization: Bearer <session-token>
 {
   "success": true,
   "data": {
-    "id": "new-uuid",
+    "id": "f1e2d3c4-b5a6-7890-abcd-ef1234567890",
     "title": "Japan Autumn Tour (Clone)",
-    "slug": "japan-autumn-tour-clone-5678",
+    "slug": "japan-autumn-tour-clone-b7c2",
     "status": "DRAFT",
-    "clonedFromTripId": "original-uuid"
+    "clonedFromTripId": "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a",
+    "isPublic": false,
+    "startDate": "2025-10-01",
+    "endDate": "2025-10-14"
   },
   "message": "Trip cloned successfully",
   "error": null
@@ -108,26 +132,26 @@ Authorization: Bearer <session-token>
     All trip stops, scheduled activities, and expense records are duplicated inside a single ACID database transaction. Either everything succeeds or nothing is written — there is no partial clone state.
   </Step>
   <Step title="Ownership Transfer">
-    The new trip is assigned to your user account with status `DRAFT`. The `clonedFromTripId` field records the original trip's UUID for reference.
+    The new trip is assigned to your user account with `status` set to `DRAFT` and `isPublic` set to `false`. The `clonedFromTripId` field records the original trip's UUID for reference.
   </Step>
   <Step title="Slug Generation">
-    A new unique slug is generated for the cloned trip automatically. Your clone gets its own shareable URL independent of the original.
+    A new unique slug is generated for your cloned trip automatically. Your clone gets its own independent share URL and does not share the original's slug.
   </Step>
 </Steps>
 
 <Note>
-  Clones are fully independent. Any edits you make to the cloned trip — changing dates, adding stops, adjusting the budget — do not affect the original public trip or its owner's data.
+  Clones are fully independent copies. Edits you make to the cloned trip — changing dates, adding stops, adjusting the budget — have no effect on the original public trip or its owner's account.
 </Note>
 
 ### Response Codes
 
 | Status | Meaning |
 |--------|---------|
-| `200`  | Success — returns the newly created cloned trip object |
-| `401`  | Not authenticated — you must be signed in to clone a trip |
-| `404`  | No public trip found for the given slug |
-| `500`  | Internal server error (includes transaction rollback on failure) |
+| `201`  | Success — the cloned trip was created; returns the new trip object |
+| `401`  | Not authenticated — sign in before calling this endpoint |
+| `404`  | No public trip found for the given slug, or the trip is set to private |
+| `500`  | Internal server error; any partial writes are rolled back automatically |
 
 <Tip>
-  After cloning, update the `status` field and adjust `startDate` / `endDate` to match your own travel dates. Use `PATCH /api/trips/:tripId` to edit the cloned trip.
+  After cloning, edit the `startDate` and `endDate` to match your own travel plans, then update the `status` to `UPCOMING` when you're ready. Use `PUT /api/trips/:id` to update trip details, or `PATCH /api/trips/:id/visibility` to make your clone public.
 </Tip>
