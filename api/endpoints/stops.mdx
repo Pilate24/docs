@@ -1,0 +1,400 @@
+---
+title: "Trip Stops and Activities API"
+sidebarTitle: "Stops"
+description: "Reference for GlobeTrotter's Stops API — add, reorder, and remove city stops within a trip, and schedule or cancel activities at each stop."
+---
+
+The Stops API manages the individual city stops that make up your multi-city itinerary, and the activities scheduled within each stop. All endpoints require authentication and ownership of the parent trip — a `403 Forbidden` response is returned if the trip belongs to a different user. Path parameters follow the pattern `/api/trips/:tripId/stops/:stopId`.
+
+<Note>
+  Stop dates must fall within the parent trip's `startDate` and `endDate`. The server validates date boundaries on every create and update request.
+</Note>
+
+---
+
+## POST /api/trips/:tripId/stops
+
+Add a new city stop to a trip. Each stop represents a single destination node in your itinerary — specifying arrival and departure dates, accommodation costs, and the mode of transport used to reach it.
+
+### Path parameters
+
+<ParamField path="tripId" type="string" required>
+  UUID of the parent trip.
+</ParamField>
+
+### Request body
+
+<ParamField body="destinationId" type="string" required>
+  UUID of the destination from the GlobeTrotter destinations catalogue. Use `GET /api/destinations` to look up available destinations and their IDs.
+</ParamField>
+
+<ParamField body="stopOrder" type="integer" required>
+  The position of this stop in the itinerary. Use `1` for the first city, `2` for the second, and so on. Must be a positive integer and unique within the trip.
+</ParamField>
+
+<ParamField body="arrivalDate" type="string" required>
+  Date you arrive at this destination, in ISO 8601 format (`YYYY-MM-DD`). Must be on or after the parent trip's `startDate`.
+</ParamField>
+
+<ParamField body="departureDate" type="string" required>
+  Date you leave this destination, in ISO 8601 format (`YYYY-MM-DD`). Must be on or before the parent trip's `endDate` and on or after `arrivalDate`.
+</ParamField>
+
+<ParamField body="accommodationCost" type="number">
+  Optional total accommodation cost (hotel, hostel, etc.) for the entire stay at this stop, in the trip's currency.
+</ParamField>
+
+<ParamField body="transportMode" type="string">
+  Optional mode of transport used to **reach** this stop. Accepted values: `FLIGHT` | `TRAIN` | `BUS` | `DRIVE` | `FERRY` | `NONE`. Defaults to `NONE` if omitted.
+</ParamField>
+
+<ParamField body="transportCost" type="number">
+  Optional cost of transport to reach this stop, in the trip's currency.
+</ParamField>
+
+### Example request
+
+```json title="POST /api/trips/:tripId/stops"
+{
+  "destinationId": "dest-uuid",
+  "stopOrder": 1,
+  "arrivalDate": "2026-06-01",
+  "departureDate": "2026-06-05",
+  "accommodationCost": 450,
+  "transportMode": "FLIGHT",
+  "transportCost": 320
+}
+```
+
+### Example response
+
+```json title="201 Created"
+{
+  "success": true,
+  "data": {
+    "id": "stop-uuid",
+    "tripId": "trip-uuid",
+    "destinationId": "dest-uuid",
+    "stopOrder": 1,
+    "arrivalDate": "2026-06-01",
+    "departureDate": "2026-06-05",
+    "durationNights": 4,
+    "accommodationCost": 450,
+    "transportMode": "FLIGHT",
+    "transportCost": 320
+  },
+  "message": "Stop added successfully",
+  "error": null
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | Validation failed — missing fields, invalid dates, or dates outside trip range |
+| `401`  | No active session |
+| `403`  | You do not own the parent trip |
+| `404`  | Trip or destination not found |
+
+---
+
+## PUT /api/trips/:tripId/stops
+
+Reorder all stops within a trip in a single request. Send the complete array of stop IDs with their new `stopOrder` values. The server updates all positions atomically.
+
+<Tip>
+  Send the full updated order for every stop in the trip — not just the ones that moved. This ensures the `stopOrder` sequence remains consistent and gap-free.
+</Tip>
+
+### Path parameters
+
+<ParamField path="tripId" type="string" required>
+  UUID of the parent trip.
+</ParamField>
+
+### Request body
+
+<ParamField body="stops" type="array" required>
+  Array of stop reorder objects. Each object must contain the stop's `id` and its new `stopOrder` value.
+
+  <Expandable title="Stop reorder object fields">
+    <ParamField body="id" type="string" required>
+      UUID of the stop to reorder.
+    </ParamField>
+    <ParamField body="stopOrder" type="integer" required>
+      New position for this stop. Must be a positive integer.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+### Example request
+
+```json title="PUT /api/trips/:tripId/stops"
+{
+  "stops": [
+    { "id": "stop-uuid-1", "stopOrder": 1 },
+    { "id": "stop-uuid-2", "stopOrder": 2 },
+    { "id": "stop-uuid-3", "stopOrder": 3 }
+  ]
+}
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "success": true,
+  "data": [
+    { "id": "stop-uuid-1", "stopOrder": 1 },
+    { "id": "stop-uuid-2", "stopOrder": 2 },
+    { "id": "stop-uuid-3", "stopOrder": 3 }
+  ],
+  "message": "Stops reordered successfully",
+  "error": null
+}
+```
+
+---
+
+## PUT /api/trips/:tripId/stops/:stopId
+
+Update the details of a specific stop — adjust dates, costs, transport mode, or any other stop field. All body fields are optional; supply only the fields you want to change.
+
+### Path parameters
+
+<ParamField path="tripId" type="string" required>
+  UUID of the parent trip.
+</ParamField>
+
+<ParamField path="stopId" type="string" required>
+  UUID of the stop to update.
+</ParamField>
+
+### Request body
+
+All fields are optional. Include only the fields you want to modify.
+
+<ParamField body="arrivalDate" type="string">
+  Updated arrival date in ISO 8601 format.
+</ParamField>
+
+<ParamField body="departureDate" type="string">
+  Updated departure date in ISO 8601 format.
+</ParamField>
+
+<ParamField body="stopOrder" type="integer">
+  Updated position in the itinerary.
+</ParamField>
+
+<ParamField body="accommodationCost" type="number">
+  Updated total accommodation cost for this stop.
+</ParamField>
+
+<ParamField body="transportMode" type="string">
+  Updated transport mode. Accepted values: `FLIGHT` | `TRAIN` | `BUS` | `DRIVE` | `FERRY` | `NONE`.
+</ParamField>
+
+<ParamField body="transportCost" type="number">
+  Updated transport cost to reach this stop.
+</ParamField>
+
+### Example request
+
+```json title="PUT /api/trips/:tripId/stops/:stopId"
+{
+  "departureDate": "2026-06-07",
+  "accommodationCost": 520,
+  "transportMode": "TRAIN"
+}
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "success": true,
+  "data": {
+    "id": "stop-uuid",
+    "tripId": "trip-uuid",
+    "arrivalDate": "2026-06-01",
+    "departureDate": "2026-06-07",
+    "durationNights": 6,
+    "accommodationCost": 520,
+    "transportMode": "TRAIN",
+    "transportCost": 320
+  },
+  "message": "Stop updated successfully",
+  "error": null
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | Validation failed — invalid date format or dates outside trip range |
+| `401`  | No active session |
+| `403`  | You do not own the parent trip |
+| `404`  | Trip or stop not found |
+
+---
+
+## DELETE /api/trips/:tripId/stops/:stopId
+
+Remove a city stop from the trip. All activities scheduled to this stop are automatically deleted along with it.
+
+<Warning>
+  Deleting a stop is irreversible. All activities scheduled within this stop are permanently removed. Consider updating the stop instead if you only want to change its dates or costs.
+</Warning>
+
+### Path parameters
+
+<ParamField path="tripId" type="string" required>
+  UUID of the parent trip.
+</ParamField>
+
+<ParamField path="stopId" type="string" required>
+  UUID of the stop to remove.
+</ParamField>
+
+### Example response
+
+```json title="200 OK"
+{
+  "success": true,
+  "data": null,
+  "message": "Stop removed",
+  "error": null
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `401`  | No active session |
+| `403`  | You do not own the parent trip |
+| `404`  | Trip or stop not found |
+
+---
+
+## POST /api/trips/:tripId/stops/:stopId/activities
+
+Schedule an activity from the GlobeTrotter activities catalogue to a specific stop. The `scheduledDate` must fall within the stop's `arrivalDate` and `departureDate` range. You can optionally override the catalogue's estimated cost with a `customCost`.
+
+### Path parameters
+
+<ParamField path="tripId" type="string" required>
+  UUID of the parent trip.
+</ParamField>
+
+<ParamField path="stopId" type="string" required>
+  UUID of the stop to schedule this activity within.
+</ParamField>
+
+### Request body
+
+<ParamField body="activityId" type="string" required>
+  UUID of the activity from the GlobeTrotter activities catalogue. Use `GET /api/destinations/:id` to browse activities available at a destination.
+</ParamField>
+
+<ParamField body="scheduledDate" type="string" required>
+  The date on which to schedule this activity, in ISO 8601 format (`YYYY-MM-DD`). Must fall within the stop's `arrivalDate` to `departureDate` range.
+</ParamField>
+
+<ParamField body="startTime" type="string">
+  Optional start time for the activity, in 24-hour `HH:mm` format (e.g. `"14:00"`).
+</ParamField>
+
+<ParamField body="customCost" type="number">
+  Optional cost override. When provided, replaces the activity's catalogue `estimatedCost` in the trip's budget calculations.
+</ParamField>
+
+### Example request
+
+```json title="POST /api/trips/:tripId/stops/:stopId/activities"
+{
+  "activityId": "act-uuid",
+  "scheduledDate": "2026-06-03",
+  "startTime": "10:00",
+  "customCost": 25
+}
+```
+
+### Example response
+
+```json title="201 Created"
+{
+  "success": true,
+  "data": {
+    "id": "trip-stop-activity-uuid",
+    "tripStopId": "stop-uuid",
+    "activityId": "act-uuid",
+    "scheduledDate": "2026-06-03",
+    "startTime": "10:00",
+    "customCost": 25,
+    "isCompleted": false
+  },
+  "message": "Activity scheduled successfully",
+  "error": null
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | `scheduledDate` is outside the stop's date range, or required fields are missing |
+| `401`  | No active session |
+| `403`  | You do not own the parent trip |
+| `404`  | Trip, stop, or activity not found |
+
+---
+
+## DELETE /api/trips/:tripId/stops/:stopId/activities/:id
+
+Remove a scheduled activity from a stop. The underlying activity in the catalogue is not affected — only this specific scheduled instance is deleted.
+
+### Path parameters
+
+<ParamField path="tripId" type="string" required>
+  UUID of the parent trip.
+</ParamField>
+
+<ParamField path="stopId" type="string" required>
+  UUID of the stop containing the scheduled activity.
+</ParamField>
+
+<ParamField path="id" type="string" required>
+  UUID of the scheduled activity instance (`trip_stop_activity` record) to remove.
+</ParamField>
+
+### Example response
+
+```json title="200 OK"
+{
+  "success": true,
+  "data": null,
+  "message": "Activity removed",
+  "error": null
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `401`  | No active session |
+| `403`  | You do not own the parent trip |
+| `404`  | Scheduled activity not found |
+
+<Accordion title="Stop and activity date validation rules">
+  GlobeTrotter enforces the following date hierarchy on every stop and activity write operation:
+
+  - **Trip level:** `trip.startDate` ≤ `trip.endDate`
+  - **Stop level:** `stop.arrivalDate` ≥ `trip.startDate` AND `stop.departureDate` ≤ `trip.endDate` AND `stop.arrivalDate` ≤ `stop.departureDate`
+  - **Activity level:** `activity.scheduledDate` ≥ `stop.arrivalDate` AND `activity.scheduledDate` ≤ `stop.departureDate`
+
+  Violations return a `400 Bad Request` response with a descriptive error message indicating which constraint was breached.
+</Accordion>

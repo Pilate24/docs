@@ -1,0 +1,151 @@
+---
+title: "Sharing and Cloning Trips"
+sidebarTitle: "Sharing"
+description: "Learn how to publish GlobeTrotter trips as public pages with vanity URLs, share them on social media, and let other users clone your full itinerary."
+---
+
+GlobeTrotter lets you publish any trip as a public page accessible to anyone on the internet — no account required to view it. Once public, your trip lives at a vanity URL derived from its title, and any logged-in user can clone your full itinerary into their own account with a single click. This page covers how to make a trip public, what the public page shows, how sharing and cloning work, and how your privacy is protected.
+
+## Making a Trip Public
+
+By default, every trip you create is **private** — only you can see it. To share a trip, toggle its visibility to public. You can do this in two ways:
+
+<Tabs>
+  <Tab title="From Trip Settings">
+    Open the trip in your dashboard, navigate to **Trip Settings**, and toggle the **"Public"** switch to on. The vanity URL is displayed immediately once the change saves.
+  </Tab>
+  <Tab title="Via the API">
+    Send a `PATCH` request to the visibility endpoint:
+
+    ```http
+    PATCH /api/trips/:id/visibility
+    Authorization: Bearer <token>
+    Content-Type: application/json
+
+    {
+      "isPublic": true
+    }
+    ```
+
+    ```json
+    {
+      "success": true,
+      "data": {
+        "id": "trip-uuid",
+        "slug": "summer-euro-trip-2026-a8f9",
+        "isPublic": true
+      },
+      "message": "Trip visibility updated",
+      "error": null
+    }
+    ```
+  </Tab>
+</Tabs>
+
+Once public, your trip is accessible at:
+
+```text
+https://globetrotter.app/p/{slug}
+```
+
+For example: `https://globetrotter.app/p/summer-euro-trip-2026-a8f9`
+
+---
+
+## The Public Trip Page
+
+The public page renders a full read-only view of your itinerary. Visitors do not need a GlobeTrotter account to access it.
+
+The public page displays:
+
+| Section | Details |
+|---|---|
+| **Hero banner** | Trip title, author name and avatar, date range, and cover image |
+| **Summary stats** | Total cities visited, total days, total estimated cost |
+| **Full itinerary** | All city stops in order, with arrival/departure dates and transport mode |
+| **Activities per stop** | All scheduled activities with time, cost, category, and duration |
+| **Cost summary** | Budget breakdown by category (Lodging, Transport, Activities, Food) |
+
+<Warning>
+The public page is **read-only**. Visitors cannot edit the itinerary, add activities, or modify any data. All changes must be made by the trip owner from their authenticated dashboard.
+</Warning>
+
+---
+
+## Social Sharing
+
+From the share tray on any public trip page, you can distribute your itinerary to your network with one click:
+
+<CardGroup cols={2}>
+  <Card title="Copy Link" icon="link">
+    Copies the full vanity URL to your clipboard — ready to paste anywhere.
+  </Card>
+  <Card title="Twitter / X" icon="x-twitter">
+    Opens a pre-filled tweet with your trip title and URL.
+  </Card>
+  <Card title="Facebook" icon="facebook">
+    Opens a Facebook share dialog with a preview of the trip page.
+  </Card>
+  <Card title="WhatsApp" icon="whatsapp">
+    Opens a WhatsApp message pre-loaded with your trip link.
+  </Card>
+  <Card title="LinkedIn" icon="linkedin">
+    Opens a LinkedIn post composer with the trip URL attached.
+  </Card>
+</CardGroup>
+
+---
+
+## Cloning a Trip
+
+Any logged-in GlobeTrotter user can clone a public trip into their own account. Cloning creates a fully independent copy — all stops, activities, costs, and dates are deep-copied in a single ACID transaction. The cloned trip is private by default and completely editable.
+
+<Steps>
+  <Step title="Open the public trip page">
+    Navigate to the vanity URL of the trip you want to clone (e.g., `https://globetrotter.app/p/ultimate-japan-cherry-blossom-2026`).
+  </Step>
+  <Step title="Click Clone This Trip">
+    Click the **"Clone This Trip"** button in the page header. You must be logged in — if you aren't, GlobeTrotter prompts you to sign in or create an account first.
+  </Step>
+  <Step title="Confirm the clone">
+    A confirmation dialog appears showing the trip title, total stops, and total days. Confirm to proceed.
+  </Step>
+  <Step title="Edit your copy">
+    The cloned trip appears in your **My Trips** dashboard, marked as a private draft. All stops, activities, and costs are intact — customise it however you like.
+  </Step>
+</Steps>
+
+<Note>
+Cloning requires a GlobeTrotter account. Guests can view any public trip page but must sign up or sign in to clone it. You can create a free account at any time from the sign-up page.
+</Note>
+
+---
+
+## Privacy and Access Control
+
+GlobeTrotter enforces strict access rules so your private trips stay private:
+
+| Scenario | Behaviour |
+|---|---|
+| Private trip accessed via vanity URL | Returns `404 Not Found` — no data is exposed |
+| Private trip API request by non-owner | Returns `403 Forbidden` |
+| Public trip API request by anyone | Returns full read-only trip data |
+| Cloning attempt without authentication | Redirects to sign-in page |
+
+To make a previously public trip private again, toggle the **"Public"** switch back to off in Trip Settings or send `{ "isPublic": false }` to the visibility endpoint. The vanity URL immediately returns `404` and the trip is removed from any public listings.
+
+---
+
+## Slug Generation
+
+Every trip gets a unique URL-safe slug the moment it is created. The slug is derived automatically from the trip title:
+
+```text
+Title: "Ultimate Japan Cherry Blossom 2026"
+Slug:  "ultimate-japan-cherry-blossom-2026-c3d7"
+URL:   https://globetrotter.app/p/ultimate-japan-cherry-blossom-2026-c3d7
+```
+
+<Accordion title="How slugs are generated">
+GlobeTrotter lowercases the trip title, replaces spaces and special characters with hyphens, and appends a short random suffix (e.g., `a8f9`) to guarantee uniqueness across the platform. Slugs are generated once at trip creation and **cannot be manually edited** — if you update the trip title, the original slug remains unchanged to avoid breaking shared links.
+</Accordion>

@@ -1,0 +1,192 @@
+---
+title: "Admin API — Platform Analytics and Management"
+sidebarTitle: "Admin"
+description: "Access platform-wide KPI metrics and audit trip records with GlobeTrotter's admin-only API endpoints, restricted to ADMIN-role accounts."
+---
+
+The Admin API provides platform-wide analytics and trip management tools. All endpoints under `/api/admin/*` require the authenticated user to have the `ADMIN` role — the role is checked server-side on every request via `getServerSession`. Regular `USER`-role accounts receive an HTTP `403` response regardless of whether they supply a valid session.
+
+<Warning>
+  These endpoints are restricted to ADMIN-role accounts. Do not expose admin API calls in end-user-facing code, client-side scripts, or public-facing pages. Treat admin responses as sensitive operational data.
+</Warning>
+
+---
+
+## GET /api/admin/metrics
+
+Return platform-wide KPI metrics for the GlobeTrotter dashboard. Use this endpoint to power analytics charts, usage summaries, and growth reporting.
+
+### Authentication
+
+Requires an active session with `role === 'ADMIN'`. Use the demo admin account (`admin@globetrotter.com` / `password123`) for local development.
+
+### Example Request
+
+```http
+GET /api/admin/metrics
+Cookie: next-auth.session-token=<admin-session>
+```
+
+### Response Fields
+
+<ResponseField name="totalUsers" type="number">
+  Total number of registered user accounts on the platform, including both `USER` and `ADMIN` roles.
+</ResponseField>
+
+<ResponseField name="activeTrips" type="number">
+  Count of trips currently in `UPCOMING` or `ONGOING` status across all users.
+</ResponseField>
+
+<ResponseField name="avgStopsPerTrip" type="number">
+  The mean number of city stops across all trips on the platform. Useful for understanding typical itinerary complexity.
+</ResponseField>
+
+<ResponseField name="totalTrips" type="number">
+  Total number of trips ever created on the platform, across all statuses (`DRAFT`, `UPCOMING`, `ONGOING`, `COMPLETED`).
+</ResponseField>
+
+<ResponseField name="trendingDestinations" type="array">
+  Top destinations ranked by usage count — how many trips include a stop at that destination.
+
+  <ResponseField name="trendingDestinations[].name" type="string">
+    Display name of the destination (city or region).
+  </ResponseField>
+
+  <ResponseField name="trendingDestinations[].tripCount" type="number">
+    Number of trips that include this destination as a stop.
+  </ResponseField>
+</ResponseField>
+
+<ResponseField name="signupTrend" type="array">
+  Daily new-user signup counts for the last 30 calendar days, ordered chronologically.
+
+  <ResponseField name="signupTrend[].date" type="string">
+    ISO 8601 date string (`YYYY-MM-DD`) for the day.
+  </ResponseField>
+
+  <ResponseField name="signupTrend[].count" type="number">
+    Number of new accounts created on that day.
+  </ResponseField>
+</ResponseField>
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "totalUsers": 12450,
+    "activeTrips": 3820,
+    "avgStopsPerTrip": 4.2,
+    "totalTrips": 18000,
+    "trendingDestinations": [
+      { "name": "Tokyo", "tripCount": 1240 },
+      { "name": "Paris", "tripCount": 1100 }
+    ],
+    "signupTrend": [
+      { "date": "2026-05-01", "count": 87 },
+      { "date": "2026-05-02", "count": 104 }
+    ]
+  },
+  "message": "Metrics retrieved successfully",
+  "error": null
+}
+```
+
+### Response Codes
+
+| Status | Meaning |
+|--------|---------|
+| `200`  | Success — returns the full platform metrics object |
+| `401`  | No valid session — sign in before calling this endpoint |
+| `403`  | Authenticated but the account does not have the `ADMIN` role |
+| `500`  | Internal server error |
+
+---
+
+## GET /api/admin/trips
+
+Return a paginated list of all trips across every user account for audit and moderation purposes.
+
+### Authentication
+
+Requires an active session with `role === 'ADMIN'`.
+
+### Query Parameters
+
+<ParamField query="page" type="integer" default="1">
+  Page number to retrieve. Combined with `limit` to calculate the `OFFSET` applied to the query.
+</ParamField>
+
+<ParamField query="limit" type="integer" default="20">
+  Maximum number of trip records to return per page.
+</ParamField>
+
+<ParamField query="search" type="string">
+  Free-text search applied against trip titles and owner email addresses. Partial matches are supported.
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter results to trips in a specific status. Accepted values: `DRAFT`, `UPCOMING`, `ONGOING`, `COMPLETED`.
+</ParamField>
+
+### Example Request
+
+```http
+GET /api/admin/trips?page=1&limit=20&status=DRAFT&search=euro
+Cookie: next-auth.session-token=<admin-session>
+```
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "trips": [
+      {
+        "id": "uuid",
+        "title": "Eurotrip 2026",
+        "userEmail": "user@example.com",
+        "status": "DRAFT",
+        "stopCount": 4
+      }
+    ],
+    "total": 18000,
+    "page": 1,
+    "limit": 20
+  },
+  "message": "Trips retrieved successfully",
+  "error": null
+}
+```
+
+### Response Codes
+
+| Status | Meaning |
+|--------|---------|
+| `200`  | Success — returns the paginated trip list and metadata |
+| `401`  | No valid session |
+| `403`  | Authenticated but not an `ADMIN`-role account |
+| `500`  | Internal server error |
+
+<Info>
+  The `total` field in the response reflects the count of all matching records before pagination, not the number of items in the current page. Use `Math.ceil(total / limit)` to calculate the total page count in a UI.
+</Info>
+
+### Trip Status Reference
+
+<Tabs>
+  <Tab title="DRAFT">
+    The trip is being planned. No departure date has passed and the trip has not been activated. Most trips created via clone or manual entry start in this status.
+  </Tab>
+  <Tab title="UPCOMING">
+    The trip's `startDate` is in the future and the trip has been marked active by the owner.
+  </Tab>
+  <Tab title="ONGOING">
+    The current date falls between `startDate` and `endDate`. The trip is actively in progress.
+  </Tab>
+  <Tab title="COMPLETED">
+    The trip's `endDate` has passed. The trip is read-only from a status perspective, though owners can still edit details.
+  </Tab>
+</Tabs>

@@ -1,0 +1,140 @@
+---
+title: "Authenticate Requests to the GlobeTrotter API"
+sidebarTitle: "Authentication"
+description: "Learn how GlobeTrotter's session-based authentication works and how to make authenticated API requests using NextAuth session cookies."
+---
+
+GlobeTrotter uses session-based authentication managed by NextAuth. When you log in through the UI, NextAuth automatically sets a session cookie in your browser. API requests you make from the browser include this cookie automatically — no manual token management is required for standard integrations.
+
+## How Authentication Works
+
+<Steps>
+  <Step title="Sign in at /login">
+    Navigate to `/login` and authenticate using either your email and password credentials or Google OAuth. Demo credentials are available for testing:
+
+    | Role | Email | Password |
+    |---|---|---|
+    | USER | `user@globetrotter.com` | `password123` |
+    | ADMIN | `admin@globetrotter.com` | `password123` |
+  </Step>
+  <Step title="NextAuth sets a session cookie">
+    On successful authentication, NextAuth creates a server-managed session and sets an HTTP-only cookie in your browser. This cookie identifies your session on all subsequent requests.
+  </Step>
+  <Step title="API requests include the cookie automatically">
+    Any fetch call made from the browser to a same-origin GlobeTrotter API route will automatically include the session cookie — provided you pass `credentials: 'include'` in your fetch options.
+  </Step>
+  <Step title="The server validates the session">
+    Every protected route calls `getServerSession` on the incoming request. If the session is valid, the request proceeds. If not, the server responds with HTTP `401 Unauthorized`.
+  </Step>
+</Steps>
+
+## Check Your Active Session
+
+Call `GET /api/auth/me` at any time to verify that your session is active and inspect the authenticated user's details.
+
+```javascript
+const response = await fetch('/api/auth/me', {
+  credentials: 'include'
+});
+const { data } = await response.json();
+// data = { id: '...', email: '...', name: '...', role: 'USER' }
+```
+
+**Successful response (HTTP 200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "1",
+    "email": "user@globetrotter.com",
+    "name": "Alex Traveler",
+    "role": "USER"
+  },
+  "message": "User session active",
+  "error": null
+}
+```
+
+## Making Authenticated API Calls
+
+Include `credentials: 'include'` in every fetch call to ensure the session cookie is forwarded to the GlobeTrotter API.
+
+<Tabs>
+  <Tab title="GET Request">
+    ```javascript
+    // GET your trips
+    const res = await fetch('/api/trips', {
+      credentials: 'include'
+    });
+    const { data: trips } = await res.json();
+    ```
+  </Tab>
+  <Tab title="POST Request">
+    ```javascript
+    // POST create a trip
+    const res = await fetch('/api/trips', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        title: 'My Japan Trip',
+        startDate: '2025-03-01',
+        endDate: '2025-03-15',
+        targetBudget: 3000,
+        currency: 'USD'
+      })
+    });
+    const { data: newTrip } = await res.json();
+    ```
+  </Tab>
+</Tabs>
+
+## Unauthenticated Responses
+
+If you make a request to a protected endpoint without a valid session, the API returns HTTP `401` with the following body:
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": null,
+  "error": "Unauthorized"
+}
+```
+
+Redirect the user to `/login` when you receive this response.
+
+## Admin-Only Endpoints
+
+Endpoints under `/api/admin/*` require the authenticated user to have the `ADMIN` role. If a regular `USER` attempts to access an admin endpoint, the API returns HTTP `403 Forbidden`:
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": null,
+  "error": "Forbidden"
+}
+```
+
+<Warning>
+  Never expose admin credentials in client-side code. The `admin@globetrotter.com` / `password123` demo credentials are for local development and testing only — replace them with real, secure credentials before deploying to production.
+</Warning>
+
+## Authentication Providers
+
+GlobeTrotter supports two authentication providers via NextAuth:
+
+<CardGroup cols={2}>
+  <Card title="Email & Password" icon="envelope">
+    Sign in with a registered email address and password through the credentials provider. Passwords must be at least 8 characters and contain at least one letter and one number.
+  </Card>
+  <Card title="Google OAuth" icon="google">
+    Sign in with your Google account via OAuth 2.0. No password required — Google handles identity verification on your behalf.
+  </Card>
+</CardGroup>
+
+<Note>
+  There is no API key system in GlobeTrotter — all authentication uses session cookies. If you are building a programmatic integration outside of a browser, authenticate by calling `POST /api/auth/[...nextauth]` with your credentials and maintain the returned session cookie across subsequent requests.
+</Note>

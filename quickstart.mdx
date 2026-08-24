@@ -1,47 +1,167 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get Started with GlobeTrotter in Minutes"
+sidebarTitle: "Quick Start"
+description: "Create your account, build your first multi-city trip, add activities, and share your itinerary — all in under ten minutes with this step-by-step guide."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+GlobeTrotter is designed so you can go from a blank slate to a fully scoped multi-city itinerary in minutes. This Quick Start guide walks you through every step: signing up, creating a trip, adding city stops, scheduling activities, reviewing your budget, and sharing your plan with the world. Follow the steps in order and you will have a live, shareable itinerary by the end.
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
-
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+<Note>
+  GlobeTrotter comes pre-seeded with **20+ global destinations** and **80+ curated activities** — covering everything from Eiffel Tower tours to street food crawls in Bangkok. You do not need to import any data or connect any external services to start building immediately.
+</Note>
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+  <Step title="Create Your Account">
+    Navigate to `/register` in your browser. Fill in the sign-up form with the following details:
 
-    ```bash
-    npm install your-package
-    ```
+    | Field | Requirement |
+    |---|---|
+    | Full Name | Your display name (shown on public trips) |
+    | Email Address | A valid email — automatically lowercased |
+    | Password | Minimum 8 characters; must include at least 1 letter and 1 number |
+    | Confirm Password | Must match the password field exactly |
+
+    Click **Create Account**. On success you are redirected to `/dashboard`.
+
+    <Tip>
+      Your email and name appear on publicly shared trip pages. Use a name you are comfortable with being visible to other travellers.
+    </Tip>
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
 
-    ```bash
-    your-cli init
-    ```
+  <Step title="Or Log In with a Demo Account">
+    Want to explore the platform before committing to an account? Use one of the pre-configured demo credentials for instant access.
+
+    <Tabs>
+      <Tab title="Demo Traveller">
+        ```
+        Email:    user@globetrotter.com
+        Password: password123
+        ```
+        Full access to the Itinerary Builder, Budget Tracker, City Discovery, and Activity Catalogue. Ideal for exploring all core traveller features.
+      </Tab>
+      <Tab title="Demo Admin">
+        ```
+        Email:    admin@globetrotter.com
+        Password: password123
+        ```
+        All traveller features plus access to the Admin Dashboard at `/admin` — view platform-wide metrics, trip audits, and destination analytics.
+      </Tab>
+    </Tabs>
+
+    Click the **1-Click Demo Traveler Login** or **1-Click Admin Demo Login** button on the sign-in page to skip typing entirely.
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
 
-    ```bash
-    your-cli start
-    ```
+  <Step title="Create Your First Trip">
+    From the Dashboard, click the **+ Plan New Trip** button in the hero banner. A creation modal opens with the following fields:
+
+    | Field | Notes |
+    |---|---|
+    | Trip Title | 3–100 characters. Example: *Summer Euro-Trip 2026* |
+    | Start Date | The first day of your journey |
+    | End Date | The last day; must be on or after start date, and within **90 days** of it |
+    | Target Budget | Optional numeric amount. Defaults to `0` (no budget limit enforced) |
+    | Currency | Defaults to `USD`. Options include EUR, GBP, INR, JPY, AUD |
+    | Description | Optional notes or reminders for yourself or travel companions |
+    | Cover Image | Optional URL or choose from the curated gallery |
+
+    Click **Create Trip**. GlobeTrotter generates a unique URL-safe slug for your trip and redirects you to the Itinerary Builder.
+
+    <Warning>
+      Trip dates cannot exceed **90 days**. If you select a date range longer than 90 days, the form will reject it with a validation error. Adjust your end date before saving.
+    </Warning>
+  </Step>
+
+  <Step title="Add City Stops">
+    Inside the Itinerary Builder, the **left panel** is your Route Manager. Add stops in the order you plan to visit them.
+
+    1. Click **+ Add City Stop** to open the City Search drawer.
+    2. Search for a destination by city or country name (e.g. "Paris", "Japan").
+    3. Select the destination from the results.
+    4. Set the **Arrival Date** and **Departure Date** for that city. Both must fall within the trip's overall date range.
+    5. Choose a **Transport Mode** for how you are arriving at this stop:
+
+    | Mode | When to use |
+    |---|---|
+    | `FLIGHT` | International or domestic air travel |
+    | `TRAIN` | Rail connections (Eurostar, Shinkansen, etc.) |
+    | `BUS` | Intercity or overnight bus |
+    | `DRIVE` | Self-drive or road trip leg |
+    | `FERRY` | Sea or river crossing |
+    | `NONE` | First stop, or no transit cost to record |
+
+    6. Optionally enter an **Accommodation Cost** for the stay and a **Transport Cost** for the leg into this city.
+    7. Click **Save Stop**.
+
+    Repeat for every city on your route. GlobeTrotter auto-populates the next stop's arrival date from the previous stop's departure date to keep your timeline continuous.
+
+    <Tip>
+      Drag the handle on any stop card to reorder your route. All dates are re-validated immediately when you save a reorder.
+    </Tip>
+  </Step>
+
+  <Step title="Add Activities to Each Stop">
+    With your stops in place, populate each city's day-by-day schedule.
+
+    1. In the Itinerary Builder's **right panel**, select the stop you want to enrich.
+    2. Click **Select Activities** on any day row to open the **Activity Catalogue** modal.
+    3. Browse or filter by category: `Sightseeing`, `Food & Dining`, `Adventure`, `Culture`, or `Nightlife`.
+    4. Use the cost and duration sliders to narrow results to your budget and available time.
+    5. Click **Schedule to Day** on any activity card and confirm the city stop and day number.
+    6. The activity appears in the day's schedule with its estimated cost, duration, and a rating badge.
+    7. Optionally adjust the **start time** and override the **custom cost** directly on the activity card.
+
+    <Info>
+      You can mark activities as **Completed** while you are on the road. Completed activities are visually struck through on the day view and the public itinerary, giving travel companions live progress updates.
+    </Info>
+  </Step>
+
+  <Step title="Review Your Budget">
+    Navigate to the **Budget** tab inside your trip. GlobeTrotter automatically aggregates every cost you have entered — no manual totalling required.
+
+    The Budget view shows:
+
+    - **Budget Health Card** — your Target Budget vs. the Total Estimated Cost, with a colour-coded status badge (*Within Budget* or *Over Budget*)
+    - **Category Breakdown Donut Chart** — percentage split across Lodging, Transportation, Activities, and Food & Misc
+    - **Daily Spend Velocity Bar Chart** — a bar per day showing that day's expenditure against your daily target threshold; days that exceed the threshold are flagged with a warning icon
+    - **Itemized Expense Table** — every line-item cost with category, date, and optional notes
+
+    You can also manually log additional expenses (visa fees, tips, souvenirs) directly in the Itemized Expense Table using the **+ Add Expense** button. Supported categories are `LODGING`, `TRANSPORT`, `ACTIVITIES`, `FOOD`, and `MISC`.
+  </Step>
+
+  <Step title="Share Your Trip">
+    Ready to share your itinerary? Toggle the trip to public to generate a shareable vanity URL.
+
+    1. Open the trip's **Edit Details** panel (pencil icon on the trip card, or top-right of the Builder).
+    2. Flip the **Visibility** toggle from `Private` to `Public`.
+    3. GlobeTrotter generates a vanity URL in the format:
+       ```
+       globetrotter.app/p/your-trip-title-slug
+       ```
+    4. Copy the link from the **Share** tray and send it via WhatsApp, Twitter/X, or any other channel.
+    5. Anyone who opens the link sees your full read-only itinerary — no login required.
+    6. Logged-in viewers can click **Clone This Trip** to instantly copy your entire itinerary — all stops, activities, and budget items — into their own account for editing.
+
+    <Tip>
+      The Share tray also includes a **QR Code generator**. Download it and add it to a printed packing list, travel journal, or group chat image so companions can access the itinerary offline.
+    </Tip>
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## What's Next?
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+Now that your first trip is live, explore GlobeTrotter's deeper features:
+
+<CardGroup cols={2}>
+  <Card title="Itinerary Builder" icon="map" href="/features/itinerary-builder">
+    Learn drag-and-drop reordering, date boundary rules, and advanced stop editing.
+  </Card>
+  <Card title="Budget Tracking" icon="wallet" href="/features/budget-tracking">
+    Understand how costs are aggregated and how to log manual expenses.
+  </Card>
+  <Card title="City Discovery" icon="globe" href="/features/city-discovery">
+    Browse the destination catalogue and save cities to your bucket list.
+  </Card>
+  <Card title="Public Sharing" icon="share" href="/features/public-sharing">
+    Manage public visibility, vanity URLs, and trip cloning in detail.
+  </Card>
+</CardGroup>

@@ -1,0 +1,73 @@
+---
+title: "Try GlobeTrotter with Demo Accounts"
+sidebarTitle: "Demo Access"
+description: "GlobeTrotter pre-seeded demo accounts let you explore every feature instantly — trip planning, budgeting, and admin analytics — no sign-up required."
+---
+
+GlobeTrotter ships with two pre-seeded demo accounts — a regular traveler account and an admin account — so you can explore every feature without creating a new account. Each demo account comes pre-loaded with sample trips, stops, and activities so you can immediately interact with real data in the Itinerary Builder, Budget tracker, Calendar view, and Public Sharing features.
+
+## Demo Accounts
+
+| Account | Email | Password | Role | Access |
+|---|---|---|---|---|
+| Demo Traveler | `user@globetrotter.com` | `password123` | USER | Full trip planning, discovery, and public trip sharing |
+| Demo Admin | `admin@globetrotter.com` | `password123` | ADMIN | All USER features plus the admin analytics dashboard at `/admin` |
+
+## Using Demo Login
+
+<Steps>
+  <Step title="Go to /login">
+    Open `/login` in your browser. Alongside the standard sign-in form you will see two one-click demo login buttons at the bottom of the page.
+  </Step>
+  <Step title="Click a demo login button">
+    - Click **1-Click Demo Traveler Login** to sign in as `user@globetrotter.com` (USER role).
+    - Click **1-Click Admin Demo Login** to sign in as `admin@globetrotter.com` (ADMIN role).
+
+    No form filling is required — the credentials are submitted automatically.
+  </Step>
+  <Step title="Explore the platform">
+    You are logged in immediately and redirected to `/dashboard`. The demo account is pre-loaded with sample data — start exploring right away.
+  </Step>
+</Steps>
+
+## What's Pre-Loaded
+
+Both demo accounts include the following sample data so you can see the platform working with real content:
+
+<CardGroup cols={2}>
+  <Card title="2 Multi-City Trips" icon="map">
+    Two complete sample trips spanning multiple destinations, each with stops, arrival/departure dates, and transport modes set.
+  </Card>
+  <Card title="Stops & Activities" icon="location-dot">
+    Each trip stop is pre-populated with activities, accommodation costs, and transport costs — ready to browse in the Itinerary Builder.
+  </Card>
+  <Card title="Budget Breakdown" icon="chart-pie">
+    Sample expenses across budget categories (LODGING, TRANSPORT, ACTIVITIES, FOOD, MISC) power the Budget screen charts out of the box.
+  </Card>
+  <Card title="Public Sharing" icon="share-nodes">
+    One sample trip is set to public — visit its vanity URL to see the Public Trip view and test the one-click clone feature.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Demo accounts are **shared across all users**. Do not store sensitive personal information, real travel plans, or private data in demo trips. Demo data may be reset periodically without notice — any changes you make to demo accounts will not be preserved.
+</Warning>
+
+## Admin Demo: Analytics Dashboard
+
+<Tip>
+  Use the **Admin demo account** (`admin@globetrotter.com`) to explore the analytics dashboard at `/admin`. It displays platform-wide KPIs — total users and trips, signup trends over time, and the top destinations by trip volume — visualized with interactive Recharts charts. This view is only accessible to accounts with the ADMIN role.
+</Tip>
+
+## Ready to Use Your Own Account?
+
+Once you have finished exploring with the demo accounts, create a permanent account to save your own itineraries.
+
+<CardGroup cols={2}>
+  <Card title="Register with Email" icon="envelope" href="/auth/credentials">
+    Create a free account with your email address and a password.
+  </Card>
+  <Card title="Sign in with Google" icon="google" href="/auth/google-oauth">
+    Use your Google account to sign up in one step — no password needed.
+  </Card>
+</CardGroup>

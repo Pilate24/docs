@@ -1,0 +1,121 @@
+---
+title: "Authentication in GlobeTrotter"
+sidebarTitle: "Overview"
+description: "How GlobeTrotter handles authentication, supported login methods — email/password, Google OAuth, and demo accounts — and the USER and ADMIN role system."
+---
+
+GlobeTrotter uses NextAuth for session management, giving you two primary ways to sign in — email/password credentials or Google OAuth — plus one-click demo accounts for instant exploration. Once authenticated, your session is stored in a secure HTTP-only cookie (`gt_session`) and automatically validated on every protected page.
+
+## Supported Login Methods
+
+<CardGroup cols={2}>
+  <Card title="Email & Password" icon="envelope" href="/auth/credentials">
+    Register with your name, email, and a password. Passwords are hashed with bcrypt and never stored in plaintext.
+  </Card>
+  <Card title="Google OAuth" icon="google" href="/auth/google-oauth">
+    Sign in with your existing Google account in one step — no separate password required.
+  </Card>
+  <Card title="1-Click Demo Login" icon="bolt" href="/auth/demo-access">
+    Use a pre-seeded traveler or admin account to explore every feature instantly, no registration needed.
+  </Card>
+  <Card title="Session Cookies" icon="cookie">
+    All sessions are stored in secure, HTTP-only cookies. GlobeTrotter never exposes session tokens to client-side JavaScript.
+  </Card>
+</CardGroup>
+
+## User Roles
+
+Every GlobeTrotter account is assigned one of two roles at creation time.
+
+| Role | Access |
+|------|--------|
+| USER | Full access to your own trips, itinerary builder, discovery, profile, and public trip sharing |
+| ADMIN | All USER access, plus the admin analytics dashboard at `/admin` |
+
+## Session Flow
+
+<Steps>
+  <Step title="Sign in at /login">
+    Navigate to `/login` and authenticate with your chosen method — email/password, Google OAuth, or a demo one-click button.
+  </Step>
+  <Step title="Session cookie is issued">
+    The server validates your credentials and writes a secure HTTP-only `gt_session` cookie to your browser. No tokens are stored in `localStorage` or exposed to JavaScript.
+  </Step>
+  <Step title="Access protected pages">
+    Protected routes — `/itinerary-builder`, `/profile`, and `/admin` — check for a valid `gt_session` cookie on every request. Authenticated users proceed; unauthenticated users are redirected to `/login`.
+  </Step>
+  <Step title="Retrieve the current user">
+    Call `GET /api/auth/me` at any time to retrieve the active session user's `id`, `email`, `name`, and `role`. A `401` response means no session is present.
+  </Step>
+</Steps>
+
+### `/api/auth/me` Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "1",
+    "email": "user@globetrotter.com",
+    "name": "Alex Traveler",
+    "role": "USER"
+  },
+  "message": "User session active",
+  "error": null
+}
+```
+
+When no session is active, the endpoint returns:
+
+```json
+{
+  "success": false,
+  "data": null,
+  "error": "No active session"
+}
+```
+
+## Protected Routes
+
+The following route prefixes require an active session. Middleware intercepts unauthenticated requests and redirects to `/login`.
+
+| Route Prefix | Who Can Access |
+|---|---|
+| `/itinerary-builder/*` | Any authenticated user (USER or ADMIN) |
+| `/profile/*` | Any authenticated user (USER or ADMIN) |
+| `/admin/*` | ADMIN role only |
+
+<Note>
+  Route protection is enforced at the middleware layer via the `gt_session` cookie check. Even direct API calls to protected endpoints require an active session and will receive a `401 Unauthorized` response if none is present.
+</Note>
+
+## API Authentication
+
+All GlobeTrotter API endpoints — except `GET /api/public/trips/:slug` — require an active session validated by `getServerSession`. Unauthenticated requests receive a `401` response with the following envelope:
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "",
+  "error": "Unauthorized"
+}
+```
+
+<Warning>
+  Never share your session cookie or expose it in client-side code. If you suspect a session has been compromised, sign out immediately from `/profile` to invalidate it.
+</Warning>
+
+## Learn More
+
+<CardGroup cols={3}>
+  <Card title="Email & Password" icon="envelope" href="/auth/credentials">
+    Register a new account or sign in with email/password credentials.
+  </Card>
+  <Card title="Google Sign-In" icon="google" href="/auth/google-oauth">
+    Sign in with your Google account — no password needed.
+  </Card>
+  <Card title="Demo Access" icon="bolt" href="/auth/demo-access">
+    Explore GlobeTrotter instantly using pre-seeded demo accounts.
+  </Card>
+</CardGroup>

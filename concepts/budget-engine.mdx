@@ -1,0 +1,141 @@
+---
+title: "How the Budget Engine Calculates Costs"
+sidebarTitle: "Budget Engine"
+description: "Understand how GlobeTrotter automatically aggregates lodging, transport, activity, and food costs into a single real-time financial summary for your trip."
+---
+
+GlobeTrotter's budget engine automatically aggregates every cost across all your stops and activities into a single, unified financial summary — no manual spreadsheets required. Every time you add a city stop, log an accommodation cost, schedule an activity, or record a transport leg, the engine recalculates your totals, category breakdowns, and budget variance in real time. This page explains exactly how those calculations work.
+
+## Cost Categories
+
+The budget engine tracks four distinct cost categories. Each category is sourced from a specific part of your itinerary data:
+
+| Category | Source | Notes |
+|---|---|---|
+| **Lodging** | `accommodationCost` per stop | Flat total cost entered per city stop |
+| **Transport** | `transportCost` per stop | Per-leg cost for the transport into that city |
+| **Activities** | `customCost` or `estimatedCost` per scheduled activity | `customCost` takes priority when set; otherwise `estimatedCost` is used |
+| **Food** | $50/day flat rate per destination day | Auto-calculated based on nights at each stop |
+
+<Tip>
+The $50/day food estimate is a default placeholder to give your budget a realistic baseline. You can override it at any time by adding explicit `FOOD` expense records via the expense API — those records replace the flat-rate estimate in your totals.
+</Tip>
+
+---
+
+## Financial Formulas
+
+The engine derives all financial metrics from the four categories above. Here is each formula used:
+
+### Total Estimated Cost
+
+```text
+Total Cost = Lodging + Transport + Activities + Food
+```
+
+The sum of all `accommodationCost` values across stops, all `transportCost` values across stops, all activity costs (using `customCost` where set, otherwise `estimatedCost`), and the auto-calculated food estimate ($50 × total destination days).
+
+### Average Cost Per Day
+
+```text
+Average Cost/Day = Total Cost ÷ Total Trip Days
+```
+
+`Total Trip Days` is calculated as `(endDate − startDate) + 1`.
+
+### Budget Variance
+
+```text
+Budget Variance = Target Budget − Total Cost
+```
+
+- A **positive** variance means you are under budget — money to spare.
+- A **negative** variance means you are over budget — costs exceed your target.
+
+### Daily Burn Rate
+
+```text
+Daily Burn Rate = [ { date, total } for each day of the trip ]
+```
+
+Each entry in the daily burn rate array represents the sum of all costs attributable to a specific calendar day. Activity costs are assigned to their `scheduledDate`; accommodation and transport costs for a stop are distributed evenly across the stop's nights.
+
+---
+
+## Budget Charts
+
+GlobeTrotter renders three visual components to help you understand your financial picture at a glance:
+
+<CardGroup cols={3}>
+  <Card title="Category Donut Chart" icon="chart-pie">
+    A Recharts donut chart showing the percentage breakdown of Lodging, Transport, Activities, and Food across your total estimated cost.
+  </Card>
+  <Card title="Daily Spend Velocity" icon="chart-bar">
+    A bar chart plotting daily spend totals across every day of your trip. Days that exceed your daily target threshold are highlighted as over-budget.
+  </Card>
+  <Card title="Budget Variance Pill" icon="gauge">
+    A status badge showing your current variance in currency. Displayed in green when under budget and red when over budget.
+  </Card>
+</CardGroup>
+
+---
+
+## Budget API Response
+
+When you call `GET /api/trips/:tripId/budget`, the engine returns a fully computed financial summary:
+
+```json
+{
+  "success": true,
+  "data": {
+    "targetBudget": 3500.00,
+    "totalEstimatedCost": 3120.00,
+    "variance": 380.00,
+    "dailyAverage": 260.00,
+    "breakdown": {
+      "lodging": 1400.00,
+      "transport": 750.00,
+      "activities": 520.00,
+      "foodAndMisc": 450.00
+    },
+    "dailyBurnRate": [
+      { "date": "2026-09-12", "total": 280.00, "isOverBudget": false },
+      { "date": "2026-09-13", "total": 420.00, "isOverBudget": true }
+    ]
+  },
+  "message": "Budget calculated successfully",
+  "error": null
+}
+```
+
+### Response Fields
+
+<ResponseField name="targetBudget" type="number">
+  The target budget you set when creating the trip.
+</ResponseField>
+
+<ResponseField name="totalEstimatedCost" type="number">
+  The sum of all cost categories across the full trip.
+</ResponseField>
+
+<ResponseField name="variance" type="number">
+  `targetBudget − totalEstimatedCost`. Positive means under budget; negative means over budget.
+</ResponseField>
+
+<ResponseField name="dailyAverage" type="number">
+  `totalEstimatedCost ÷ totalTripDays`. Useful for comparing against a daily allowance.
+</ResponseField>
+
+<ResponseField name="breakdown" type="object">
+  An object with keys `lodging`, `transport`, `activities`, and `foodAndMisc`, each holding that category's total cost in your trip currency.
+</ResponseField>
+
+<ResponseField name="dailyBurnRate" type="array">
+  An array of `{ date, total, isOverBudget }` objects — one entry per calendar day of the trip — showing how costs are distributed day by day.
+</ResponseField>
+
+---
+
+<Note>
+All costs are displayed in the currency you selected when creating your trip (e.g., `USD`, `EUR`, `GBP`). GlobeTrotter does not perform live currency conversion — all values are stored and calculated in your chosen trip currency.
+</Note>

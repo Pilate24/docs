@@ -1,0 +1,105 @@
+---
+title: "Build Multi-City Itineraries with GlobeTrotter"
+sidebarTitle: "Itinerary Builder"
+description: "Use GlobeTrotter's Itinerary Builder to compose multi-city routes stop by stop, schedule activities, assign transport modes, and manage all trip logistics."
+---
+
+The Itinerary Builder is the core of GlobeTrotter — a drag-and-drop interface where you compose your route stop by stop, schedule curated activities for each city, assign transport modes between legs, and manage every cost detail of your journey in one unified workspace.
+
+## Getting to the Builder
+
+You can open the Itinerary Builder from two places:
+
+- **My Trips** → click any trip card → select **Open Builder** from the action menu
+- **Landing page** → click **Launch Builder** in the hero section to jump straight in
+
+---
+
+## Adding a City Stop
+
+<Steps>
+  <Step title="Search for a city">
+    Type any city or country name in the city search bar at the top of the builder. An auto-suggest dropdown populates results from the GlobeTrotter destination catalogue as you type.
+  </Step>
+  <Step title="Set your dates">
+    Enter the **Arrival Date** and **Departure Date** for this stop using the date pickers. Both dates must fall within the overarching trip start and end dates.
+  </Step>
+  <Step title="Choose a transport mode">
+    Select how you will travel to this city from the **Transport Mode** dropdown. The available options are `FLIGHT`, `TRAIN`, `BUS`, `DRIVE`, `FERRY`, or `NONE`.
+  </Step>
+  <Step title="Enter costs">
+    Fill in the **Transport Cost** (total fare to reach this stop) and the **Accommodation Cost** (nightly rate for your stay). Accommodation cost is multiplied by the number of nights to compute the lodging subtotal.
+  </Step>
+  <Step title="Add to Itinerary">
+    Click **Add to Itinerary**. The stop card appears in the stops list, and the Budget Engine updates immediately to reflect your new costs.
+  </Step>
+</Steps>
+
+---
+
+## Managing Stops
+
+Once you have stops in your itinerary, use the following controls on each stop card to keep your route organized:
+
+- **Reorder** — Drag the handle on the left edge of any stop card up or down. Reordering reassigns the `stopOrder` value for every stop automatically.
+- **Remove** — Click the **×** (remove) button in the top-right corner of a stop card to delete that city. Removing a stop also permanently deletes all activities scheduled for that stop.
+- **Date validation** — The builder enforces sequential date logic. It prevents you from setting an arrival date that comes after a departure date, and warns you when stop dates fall outside the trip's overall date range.
+
+<Tip>
+  The builder persists your in-progress work to `localStorage` as you make changes — if you accidentally navigate away or close the tab, your unsaved stops will be restored automatically when you return to the builder.
+</Tip>
+
+---
+
+## Scheduling Activities
+
+You can attach curated activities from the GlobeTrotter catalogue to any stop in your itinerary.
+
+<Steps>
+  <Step title="Open the Activity Catalogue">
+    Click **Select Activities** on the stop card for the city you want to enrich. The Activity Catalogue panel opens, pre-filtered to activities available at that destination.
+  </Step>
+  <Step title="Browse and filter">
+    Search activities by name, filter by category (Sightseeing, Food & Dining, Adventure, Culture, Nightlife), or set a **Max Cost** slider to stay within budget.
+  </Step>
+  <Step title="Schedule an activity">
+    Click **Schedule** on any activity card to assign it to that stop. The activity is added to the stop's roster immediately and its estimated cost is rolled into the trip budget.
+  </Step>
+  <Step title="Review and remove">
+    Scheduled activities appear as labelled chips on the stop card. Click the **❌** icon on any chip to remove that activity from the stop.
+  </Step>
+</Steps>
+
+---
+
+## Transport Mode Reference
+
+Use the table below to choose the right transport mode when adding a stop:
+
+| Mode | When to Use |
+|---|---|
+| `FLIGHT` | Air travel between cities |
+| `TRAIN` | Rail connection between cities |
+| `BUS` | Long-distance coach or bus service |
+| `DRIVE` | Road trip or rental car leg |
+| `FERRY` | Sea crossing or island hop |
+| `NONE` | No transport needed — same-city continuation or starting point |
+
+---
+
+## Saving Your Itinerary
+
+GlobeTrotter uses a two-tier save strategy:
+
+<CardGroup cols={2}>
+  <Card title="Auto-Save to localStorage" icon="floppy-disk">
+    Every change you make — adding stops, editing dates, scheduling activities — is written to `localStorage` in real time. This protects your work against accidental navigation.
+  </Card>
+  <Card title="Save to Server" icon="cloud-arrow-up">
+    Click **Save Itinerary** (or the **Save Stop** button on an individual card) to persist your itinerary to the server. This calls `POST /api/trips/:tripId/stops` and makes your changes available across devices.
+  </Card>
+</CardGroup>
+
+<Note>
+  You must be signed in to save itineraries to the server. Changes stored only in `localStorage` are device-specific and will be lost if you clear browser data. Always click **Save Itinerary** before sharing or closing your session.
+</Note>

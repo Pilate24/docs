@@ -1,0 +1,110 @@
+---
+title: "GlobeTrotter REST API Reference"
+sidebarTitle: "Overview"
+description: "Explore GlobeTrotter's REST API — base URL, standard response envelope, supported HTTP methods, and status codes for every endpoint."
+---
+
+GlobeTrotter exposes a RESTful JSON API built on Next.js API Route Handlers. All endpoints follow a standard request/response envelope and require session authentication except where noted. Use this reference to understand how to communicate with the API, interpret responses, and handle errors across all GlobeTrotter features.
+
+## Base URL
+
+All API endpoints are relative to the following base URL:
+
+| Environment | Base URL |
+|---|---|
+| Production | `https://your-domain.com/api` |
+| Local development | `http://localhost:3000/api` |
+
+All request bodies must be sent as JSON. Include the header `Content-Type: application/json` on every request that has a body.
+
+## Response Envelope
+
+Every API response from GlobeTrotter — success or failure — uses the same JSON envelope structure. Always check the `success` field before reading `data`.
+
+**Successful response:**
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "message": "Operation completed successfully",
+  "error": null
+}
+```
+
+**Error response:**
+
+```json
+{
+  "success": false,
+  "data": null,
+  "message": null,
+  "error": "Error description"
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `success` | `boolean` | `true` if the request completed without error |
+| `data` | `T \| null` | The response payload; `null` on failure |
+| `message` | `string \| null` | Human-readable success message; `null` on failure |
+| `error` | `string \| null` | Human-readable error description; `null` on success |
+
+## HTTP Status Codes
+
+GlobeTrotter uses standard HTTP status codes to indicate the outcome of every request.
+
+| Code | Meaning |
+|---|---|
+| `200` | Success — the request completed and returned data |
+| `201` | Created — a new resource was successfully created |
+| `400` | Bad Request — validation failed; check your request body |
+| `401` | Unauthorized — no active session found |
+| `403` | Forbidden — you do not own this resource |
+| `404` | Not Found — the resource does not exist |
+| `500` | Internal Server Error — something went wrong on the server |
+
+## Endpoint Index
+
+Browse the full API reference by resource type:
+
+<CardGroup cols={2}>
+  <Card title="Auth Endpoints" icon="lock" href="/api/endpoints/auth">
+    Sign in, sign out, and inspect your active session with NextAuth-backed routes.
+  </Card>
+  <Card title="Trips" icon="map" href="/api/endpoints/trips">
+    Create, read, update, and delete your multi-city trip itineraries.
+  </Card>
+  <Card title="Stops & Activities" icon="map-pin" href="/api/endpoints/stops">
+    Manage individual stops within a trip, including transport and accommodation details.
+  </Card>
+  <Card title="Destinations" icon="globe" href="/api/endpoints/destinations">
+    Search and browse the curated destinations catalogue.
+  </Card>
+  <Card title="Activities Catalogue" icon="ticket" href="/api/endpoints/activities">
+    Discover activities available at each destination and attach them to your stops.
+  </Card>
+  <Card title="Budget" icon="wallet" href="/api/endpoints/budget">
+    Log and categorize trip expenses across LODGING, TRANSPORT, ACTIVITIES, FOOD, and MISC.
+  </Card>
+  <Card title="Public & Clone" icon="share" href="/api/endpoints/public">
+    Fetch publicly shared trips by vanity URL and one-click clone them to your account.
+  </Card>
+  <Card title="Admin" icon="shield" href="/api/endpoints/admin">
+    Platform-wide management endpoints restricted to users with the ADMIN role.
+  </Card>
+</CardGroup>
+
+## Content-Type
+
+All request bodies must be sent as JSON. Set the `Content-Type` header on every `POST`, `PUT`, and `PATCH` request:
+
+```http
+Content-Type: application/json
+```
+
+Requests without this header that include a body may result in a `400 Bad Request` response.
+
+<Note>
+  Most endpoints require an active browser session. If you're building a client-side integration, ensure your fetch calls include `credentials: 'include'` to send session cookies automatically with every request.
+</Note>

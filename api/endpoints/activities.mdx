@@ -1,0 +1,123 @@
+---
+title: "Activities API — Browse the Activity Catalogue"
+sidebarTitle: "Activities"
+description: "Search and filter GlobeTrotter's curated catalogue of 80+ activities by destination, category, cost, and duration across 6 continents."
+---
+
+The Activities API provides access to GlobeTrotter's curated catalogue of 80+ activities across 6 continents. Activities are linked to destinations and can be filtered by category, cost, and duration — making it straightforward to discover what's available at each stop in your itinerary before you commit to a schedule.
+
+## GET /api/activities
+
+List and search activities from the global catalogue. This endpoint is publicly accessible — no authentication is required to browse or filter activities.
+
+### Query Parameters
+
+<ParamField query="destinationId" type="string">
+  Filter activities to a specific destination. Pass the destination's UUID to scope results to a single city or region.
+</ParamField>
+
+<ParamField query="category" type="string">
+  Filter by activity category. Accepted values: `cultural`, `outdoor`, `culinary`, `nightlife`, `shopping`, `wellness`, `adventure`.
+</ParamField>
+
+<ParamField query="search" type="string">
+  Keyword search against activity titles. Partial matches are supported (e.g., `"food"` returns `"Street Food Tour"` and `"Food Market Walk"`).
+</ParamField>
+
+<ParamField query="maxCost" type="number">
+  Return only activities with an `estimatedCost` at or below this value. Costs are expressed in USD.
+</ParamField>
+
+<ParamField query="maxDuration" type="integer">
+  Return only activities with a `durationMinutes` value at or below this threshold.
+</ParamField>
+
+<ParamField query="sort" type="string">
+  Sort the result set. Accepted values: `rating` (highest first), `cost` (lowest first), `duration` (shortest first). Defaults to `rating` when omitted.
+</ParamField>
+
+<ParamField query="limit" type="integer" default="20">
+  Maximum number of activities to return per page.
+</ParamField>
+
+<ParamField query="offset" type="integer" default="0">
+  Number of records to skip before returning results. Use with `limit` to paginate through large result sets.
+</ParamField>
+
+### Example Request
+
+```http
+GET /api/activities?destinationId=dest-uuid&category=culinary&maxCost=60&sort=rating&limit=5
+```
+
+### Example Response
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "act-uuid",
+      "destinationId": "dest-uuid",
+      "title": "Street Food Tour in Shibuya",
+      "category": "culinary",
+      "estimatedCost": 45,
+      "durationMinutes": 180,
+      "rating": 4.7
+    }
+  ],
+  "message": "Activities retrieved successfully",
+  "error": null
+}
+```
+
+<Note>
+  To schedule an activity to a trip stop, use `POST /api/trips/:tripId/stops/:stopId/activities` with the `activityId` from this response. The Activities API is read-only — it only provides discovery and filtering.
+</Note>
+
+### Response Codes
+
+| Status | Meaning |
+|--------|---------|
+| `200`  | Success — returns an array of matching activities (empty array if none match) |
+| `400`  | Invalid query parameter value (e.g., unrecognised `category` or non-numeric `maxCost`) |
+| `500`  | Internal server error |
+
+### Pagination Pattern
+
+Combine `limit` and `offset` to page through the full catalogue:
+
+```http
+# Page 1 — first 20 results
+GET /api/activities?limit=20&offset=0
+
+# Page 2 — next 20 results
+GET /api/activities?limit=20&offset=20
+```
+
+<Tip>
+  Pair `destinationId` with `sort=rating` to surface the highest-rated things to do at a specific stop before you lock in your itinerary dates.
+</Tip>
+
+### Category Reference
+
+<CardGroup cols={2}>
+  <Card title="cultural" icon="landmark">
+    Museums, historical sites, art galleries, and cultural experiences.
+  </Card>
+  <Card title="outdoor" icon="tree">
+    Hiking, cycling, nature walks, parks, and scenic viewpoints.
+  </Card>
+  <Card title="culinary" icon="utensils">
+    Food tours, cooking classes, market visits, and tasting experiences.
+  </Card>
+  <Card title="nightlife" icon="moon">
+    Bars, clubs, live music venues, and evening entertainment.
+  </Card>
+  <Card title="shopping" icon="bag-shopping">
+    Markets, boutiques, souvenirs, and retail districts.
+  </Card>
+  <Card title="adventure" icon="bolt">
+    Extreme sports, water activities, skydiving, and high-adrenaline experiences.
+  </Card>
+</CardGroup>

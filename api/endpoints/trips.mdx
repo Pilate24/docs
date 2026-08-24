@@ -1,0 +1,375 @@
+---
+title: "Trips API — Create, Read, Update, Delete"
+sidebarTitle: "Trips"
+description: "Full reference for the GlobeTrotter Trips API: list, create, retrieve, update, delete trips, and toggle public visibility — all requiring authentication."
+---
+
+The Trips API lets you create, list, retrieve, update, and delete trip records in GlobeTrotter. All endpoints require an active session — an unauthenticated request returns `401 Unauthorized`. Trips belong to the authenticated user, so you cannot read or modify another user's private trips. Attempting to modify a trip you do not own returns `403 Forbidden`.
+
+<Note>
+  All request bodies must be sent as JSON with `Content-Type: application/json`. Include `credentials: 'include'` in browser `fetch` calls to send the session cookie automatically.
+</Note>
+
+---
+
+## GET /api/trips
+
+Return an array of all trips belonging to the authenticated user. Optionally filter by status, search by title, or sort the results.
+
+### Query parameters
+
+<ParamField query="status" type="string">
+  Filter trips by lifecycle status. Accepted values: `DRAFT` | `UPCOMING` | `ONGOING` | `COMPLETED`. Omit to return all statuses.
+</ParamField>
+
+<ParamField query="search" type="string">
+  Full-text search string matched against trip titles and destination names.
+</ParamField>
+
+<ParamField query="sort" type="string">
+  Sort order for the returned list. Accepted values: `date` | `budget` | `duration`. Defaults to most recently created first.
+</ParamField>
+
+### Response fields
+
+<ResponseField name="data" type="array">
+  Array of trip summary objects belonging to the authenticated user.
+
+  <Expandable title="Trip object fields">
+    <ResponseField name="id" type="string">UUID of the trip.</ResponseField>
+    <ResponseField name="title" type="string">Human-readable trip title.</ResponseField>
+    <ResponseField name="slug" type="string">URL-safe unique slug, e.g. `japan-autumn-tour-1234`.</ResponseField>
+    <ResponseField name="status" type="string">`DRAFT` | `UPCOMING` | `ONGOING` | `COMPLETED`.</ResponseField>
+    <ResponseField name="startDate" type="string">Trip start date in ISO 8601 format (`YYYY-MM-DD`).</ResponseField>
+    <ResponseField name="endDate" type="string">Trip end date in ISO 8601 format (`YYYY-MM-DD`).</ResponseField>
+    <ResponseField name="targetBudget" type="number">User-defined budget target in the trip's currency.</ResponseField>
+    <ResponseField name="currency" type="string">ISO 4217 currency code, e.g. `USD`.</ResponseField>
+    <ResponseField name="isPublic" type="boolean">`true` if the trip is publicly shareable via vanity URL.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example response
+
+```json title="200 OK"
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Japan Autumn Tour",
+      "slug": "japan-autumn-tour-1234",
+      "status": "UPCOMING",
+      "startDate": "2025-10-01",
+      "endDate": "2025-10-14",
+      "targetBudget": 4000,
+      "currency": "USD",
+      "isPublic": false
+    }
+  ],
+  "message": "Trips retrieved successfully",
+  "error": null
+}
+```
+
+---
+
+## POST /api/trips
+
+Create a new trip for the authenticated user. The server automatically generates a unique URL-safe slug and sets the initial status to `UPCOMING`.
+
+### Request body
+
+<ParamField body="title" type="string" required>
+  Trip name displayed throughout the app. Minimum **3 characters**, maximum **100 characters**.
+</ParamField>
+
+<ParamField body="startDate" type="string" required>
+  Trip start date as an ISO 8601 date string (`YYYY-MM-DD`). Must be a valid date.
+</ParamField>
+
+<ParamField body="endDate" type="string" required>
+  Trip end date as an ISO 8601 date string (`YYYY-MM-DD`). Must be on or after `startDate`.
+</ParamField>
+
+<ParamField body="description" type="string">
+  Optional freeform notes or summary for the trip.
+</ParamField>
+
+<ParamField body="targetBudget" type="number">
+  Optional budget target in the specified currency. Defaults to `0` if omitted.
+</ParamField>
+
+<ParamField body="currency" type="string">
+  ISO 4217 currency code for budget tracking (e.g. `USD`, `EUR`, `GBP`). Defaults to `"USD"`.
+</ParamField>
+
+<ParamField body="coverImageUrl" type="string">
+  Optional URL for the trip's hero cover image.
+</ParamField>
+
+### Example request
+
+```json title="POST /api/trips"
+{
+  "title": "Eurotrip 2026",
+  "startDate": "2026-06-01",
+  "endDate": "2026-06-21",
+  "targetBudget": 5000,
+  "currency": "USD"
+}
+```
+
+### Example response
+
+```json title="201 Created"
+{
+  "success": true,
+  "data": {
+    "id": "a1b2c3d4-...",
+    "title": "Eurotrip 2026",
+    "slug": "eurotrip-2026-1748820000000",
+    "status": "UPCOMING",
+    "startDate": "2026-06-01",
+    "endDate": "2026-06-21",
+    "targetBudget": 5000,
+    "currency": "USD",
+    "isPublic": false
+  },
+  "message": "Trip created successfully",
+  "error": null
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | Validation failed — `title` too short/long, missing dates, or invalid date format |
+| `401`  | No active session |
+
+---
+
+## GET /api/trips/:id
+
+Retrieve a single trip by its UUID, including full stop details, scheduled activities, and destination information for each stop.
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the trip to retrieve.
+</ParamField>
+
+### Response fields
+
+<ResponseField name="data" type="object">
+  Full trip object with nested stop and activity data.
+
+  <Expandable title="Trip detail fields">
+    <ResponseField name="id" type="string">Trip UUID.</ResponseField>
+    <ResponseField name="title" type="string">Trip title.</ResponseField>
+    <ResponseField name="slug" type="string">Unique URL-safe slug.</ResponseField>
+    <ResponseField name="status" type="string">Current trip status.</ResponseField>
+    <ResponseField name="startDate" type="string">ISO 8601 start date.</ResponseField>
+    <ResponseField name="endDate" type="string">ISO 8601 end date.</ResponseField>
+    <ResponseField name="targetBudget" type="number">User's budget target.</ResponseField>
+    <ResponseField name="currency" type="string">Currency code.</ResponseField>
+    <ResponseField name="isPublic" type="boolean">Public visibility flag.</ResponseField>
+    <ResponseField name="description" type="string">Optional trip notes.</ResponseField>
+    <ResponseField name="coverImageUrl" type="string">Optional hero image URL.</ResponseField>
+    <ResponseField name="stops" type="array">
+      Ordered array of city stops, each including destination details and scheduled activities.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `401`  | No active session |
+| `403`  | Trip belongs to a different user |
+| `404`  | No trip found with the given id |
+
+---
+
+## PUT /api/trips/:id
+
+Update one or more fields on an existing trip. All body fields are optional — send only the fields you want to change.
+
+<Warning>
+  Only the owner of a trip can update it. Requests from a different authenticated user return `403 Forbidden`.
+</Warning>
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the trip to update.
+</ParamField>
+
+### Request body
+
+<ParamField body="title" type="string">
+  Updated trip title. Min 3, max 100 characters.
+</ParamField>
+
+<ParamField body="description" type="string">
+  Updated trip description or notes.
+</ParamField>
+
+<ParamField body="startDate" type="string">
+  Updated start date in ISO 8601 format.
+</ParamField>
+
+<ParamField body="endDate" type="string">
+  Updated end date in ISO 8601 format.
+</ParamField>
+
+<ParamField body="targetBudget" type="number">
+  Updated budget target.
+</ParamField>
+
+<ParamField body="currency" type="string">
+  Updated currency code.
+</ParamField>
+
+<ParamField body="coverImageUrl" type="string">
+  Updated cover image URL.
+</ParamField>
+
+<ParamField body="isPublic" type="boolean">
+  Set to `true` to make the trip publicly shareable, or `false` to make it private.
+</ParamField>
+
+### Example request
+
+```json title="PUT /api/trips/:id"
+{
+  "title": "Ultimate Eurotrip 2026",
+  "targetBudget": 6000,
+  "isPublic": true
+}
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "success": true,
+  "data": {
+    "id": "a1b2c3d4-...",
+    "title": "Ultimate Eurotrip 2026",
+    "targetBudget": 6000,
+    "isPublic": true
+  },
+  "message": "Trip updated successfully",
+  "error": null
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | Validation failed on one or more fields |
+| `401`  | No active session |
+| `403`  | You do not own this trip |
+| `404`  | Trip not found |
+
+---
+
+## DELETE /api/trips/:id
+
+Permanently delete a trip and all its associated data — stops, scheduled activities, and expenses — via cascading deletes. This action cannot be undone.
+
+<Warning>
+  Deleting a trip is **irreversible**. All city stops, scheduled activities, and expense records attached to the trip are permanently removed. Only the trip owner can perform this action.
+</Warning>
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the trip to delete.
+</ParamField>
+
+### Example response
+
+```json title="200 OK"
+{
+  "success": true,
+  "data": null,
+  "message": "Trip deleted successfully",
+  "error": null
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `401`  | No active session |
+| `403`  | You do not own this trip |
+| `404`  | Trip not found |
+
+---
+
+## PATCH /api/trips/:id/visibility
+
+Toggle a trip between public and private without a full update. When a trip is made public, it becomes accessible at its vanity URL (`/p/:slug`) and can be cloned by other GlobeTrotter users.
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the trip to update.
+</ParamField>
+
+### Request body
+
+<ParamField body="isPublic" type="boolean" required>
+  Pass `true` to make the trip publicly accessible, or `false` to restrict it to the owner only.
+</ParamField>
+
+### Example requests
+
+<Tabs>
+  <Tab title="Make Public">
+    ```json title="PATCH /api/trips/:id/visibility"
+    {
+      "isPublic": true
+    }
+    ```
+  </Tab>
+  <Tab title="Make Private">
+    ```json title="PATCH /api/trips/:id/visibility"
+    {
+      "isPublic": false
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Example response
+
+```json title="200 OK"
+{
+  "success": true,
+  "data": {
+    "id": "a1b2c3d4-...",
+    "isPublic": true
+  },
+  "message": "Trip visibility updated successfully",
+  "error": null
+}
+```
+
+<Tip>
+  After setting `isPublic: true`, share your trip using the vanity URL pattern `https://globetrotter.app/p/{slug}`. The slug is returned in the trip object's `slug` field.
+</Tip>
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `400`  | `isPublic` field missing or not a boolean |
+| `401`  | No active session |
+| `403`  | You do not own this trip |
+| `404`  | Trip not found |

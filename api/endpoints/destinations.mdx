@@ -1,0 +1,276 @@
+---
+title: "Destinations API — Search and Browse Cities"
+sidebarTitle: "Destinations"
+description: "Reference for the GlobeTrotter Destinations API — search and filter the curated city catalogue and fetch full destination details with activities."
+---
+
+The Destinations API gives you access to GlobeTrotter's curated catalogue of 20+ global cities. Use it to search, filter, and retrieve destination details including available activities. Destination list and detail endpoints are **publicly readable** — no authentication is required to browse the catalogue. You only need a session when adding a destination to a trip stop.
+
+<Note>
+  Destination IDs returned by this API are used as the `destinationId` field when creating trip stops via `POST /api/trips/:tripId/stops`.
+</Note>
+
+---
+
+## GET /api/destinations
+
+Return a paginated list of destinations from the GlobeTrotter catalogue. Filter by continent or cost tier, search by city or country name, and sort the results to suit your use case.
+
+**Authentication:** Not required — this endpoint is public.
+
+### Query parameters
+
+<ParamField query="search" type="string">
+  Full-text search string matched against city name, country name, and destination description. Case-insensitive. Example: `"tokyo"` or `"south america"`.
+</ParamField>
+
+<ParamField query="continent" type="string">
+  Filter by geographic continent. Accepted values: `Africa` | `Asia` | `Europe` | `North America` | `South America` | `Oceania`.
+</ParamField>
+
+<ParamField query="costIndex" type="string">
+  Filter by destination cost tier. Accepted values:
+  - `BUDGET` — typically under $80/day
+  - `MODERATE` — typically $80–$200/day
+  - `LUXURY` — typically over $200/day
+</ParamField>
+
+<ParamField query="sort" type="string">
+  Sort the returned list. Accepted values: `popularity` (default) | `cost` | `name`.
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  Number of destinations to return per page. Defaults to `20`. Maximum `100`.
+</ParamField>
+
+<ParamField query="offset" type="integer">
+  Number of destinations to skip for pagination. Defaults to `0`. Use `offset=20` to fetch the second page when `limit=20`.
+</ParamField>
+
+### Response fields
+
+<ResponseField name="data" type="array">
+  Array of destination summary objects.
+
+  <Expandable title="Destination object fields">
+    <ResponseField name="id" type="string">
+      UUID of the destination. Use this value as `destinationId` when adding a stop to a trip.
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      City name, e.g. `"Tokyo"`.
+    </ResponseField>
+    <ResponseField name="country" type="string">
+      Country the city is located in, e.g. `"Japan"`.
+    </ResponseField>
+    <ResponseField name="continent" type="string">
+      Geographic continent the destination belongs to.
+    </ResponseField>
+    <ResponseField name="costIndex" type="string">
+      Cost tier: `BUDGET` | `MODERATE` | `LUXURY`.
+    </ResponseField>
+    <ResponseField name="popularityScore" type="number">
+      Integer popularity score from 1–100 based on traveller activity within GlobeTrotter.
+    </ResponseField>
+    <ResponseField name="avgDailyCost" type="number">
+      Estimated average daily spend in USD, including accommodation, food, and typical activities.
+    </ResponseField>
+    <ResponseField name="imageUrl" type="string">
+      URL of the destination's hero image.
+    </ResponseField>
+    <ResponseField name="lat" type="number">
+      Geographic latitude — used to render the destination on the Leaflet map.
+    </ResponseField>
+    <ResponseField name="long" type="number">
+      Geographic longitude — used to render the destination on the Leaflet map.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example request
+
+```http title="Search for budget destinations in Asia"
+GET /api/destinations?continent=Asia&costIndex=BUDGET&sort=popularity&limit=10
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Tokyo",
+      "country": "Japan",
+      "continent": "Asia",
+      "costIndex": "MODERATE",
+      "popularityScore": 98,
+      "avgDailyCost": 120,
+      "imageUrl": "https://images.globetrotter.app/destinations/tokyo.jpg",
+      "lat": 35.6762,
+      "long": 139.6503
+    },
+    {
+      "id": "uuid-2",
+      "name": "Bangkok",
+      "country": "Thailand",
+      "continent": "Asia",
+      "costIndex": "BUDGET",
+      "popularityScore": 94,
+      "avgDailyCost": 55,
+      "imageUrl": "https://images.globetrotter.app/destinations/bangkok.jpg",
+      "lat": 13.7563,
+      "long": 100.5018
+    }
+  ],
+  "message": "Destinations retrieved successfully",
+  "error": null
+}
+```
+
+### Pagination example
+
+```http title="Fetch second page (destinations 21–40)"
+GET /api/destinations?limit=20&offset=20
+```
+
+<Tip>
+  Combine `search` with `continent` for faster, more targeted results. For example, searching `"garden"` with `continent=Europe` returns European cities with "garden" in their name or description.
+</Tip>
+
+---
+
+## GET /api/destinations/:id
+
+Retrieve a single destination by its UUID, including the full catalogue of activities available at that city. Use the returned `activities` array to choose which activities to schedule when building a trip stop.
+
+**Authentication:** Not required — this endpoint is public.
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  UUID of the destination to retrieve.
+</ParamField>
+
+### Response fields
+
+<ResponseField name="data" type="object">
+  Full destination object with nested activities.
+
+  <Expandable title="Destination detail fields">
+    <ResponseField name="id" type="string">Destination UUID.</ResponseField>
+    <ResponseField name="name" type="string">City name.</ResponseField>
+    <ResponseField name="country" type="string">Country name.</ResponseField>
+    <ResponseField name="continent" type="string">Geographic continent.</ResponseField>
+    <ResponseField name="costIndex" type="string">`BUDGET` | `MODERATE` | `LUXURY`.</ResponseField>
+    <ResponseField name="popularityScore" type="number">Popularity score 1–100.</ResponseField>
+    <ResponseField name="avgDailyCost" type="number">Average daily cost estimate in USD.</ResponseField>
+    <ResponseField name="description" type="string">Full destination description and travel highlights.</ResponseField>
+    <ResponseField name="imageUrl" type="string">URL of the destination's hero image.</ResponseField>
+    <ResponseField name="lat" type="number">Latitude for map rendering.</ResponseField>
+    <ResponseField name="long" type="number">Longitude for map rendering.</ResponseField>
+    <ResponseField name="activities" type="array">
+      Array of all activities available at this destination.
+
+      <Expandable title="Activity object fields">
+        <ResponseField name="id" type="string">
+          Activity UUID. Use this as `activityId` when scheduling an activity to a stop.
+        </ResponseField>
+        <ResponseField name="title" type="string">
+          Activity name, e.g. `"Senso-ji Temple Visit"`.
+        </ResponseField>
+        <ResponseField name="category" type="string">
+          Activity type: `SIGHTSEEING` | `ADVENTURE` | `FOOD` | `CULTURE` | `RELAXATION` | `NIGHTLIFE`.
+        </ResponseField>
+        <ResponseField name="estimatedCost" type="number">
+          Estimated cost per person in USD. `0` for free entry.
+        </ResponseField>
+        <ResponseField name="durationMinutes" type="number">
+          Estimated duration of the activity in minutes.
+        </ResponseField>
+        <ResponseField name="rating" type="number">
+          Average traveller rating out of 5.0, e.g. `4.8`.
+        </ResponseField>
+        <ResponseField name="imageUrl" type="string">
+          Optional URL of the activity's thumbnail image.
+        </ResponseField>
+        <ResponseField name="description" type="string">
+          Brief description of what the activity entails.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example response
+
+```json title="200 OK"
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "Tokyo",
+    "country": "Japan",
+    "continent": "Asia",
+    "costIndex": "MODERATE",
+    "popularityScore": 98,
+    "avgDailyCost": 120,
+    "description": "Japan's sprawling capital blends ancient temples with neon-lit skyscrapers, world-class cuisine, and hyper-efficient transit.",
+    "imageUrl": "https://images.globetrotter.app/destinations/tokyo.jpg",
+    "lat": 35.6762,
+    "long": 139.6503,
+    "activities": [
+      {
+        "id": "act-uuid",
+        "title": "Senso-ji Temple Visit",
+        "category": "CULTURE",
+        "estimatedCost": 0,
+        "durationMinutes": 120,
+        "rating": 4.8,
+        "imageUrl": "https://images.globetrotter.app/activities/sensoji.jpg",
+        "description": "Explore Tokyo's oldest temple in the Asakusa district, including the iconic Nakamise shopping street."
+      },
+      {
+        "id": "act-uuid-2",
+        "title": "Tsukiji Outer Market Food Tour",
+        "category": "FOOD",
+        "estimatedCost": 35,
+        "durationMinutes": 150,
+        "rating": 4.7,
+        "imageUrl": "https://images.globetrotter.app/activities/tsukiji.jpg",
+        "description": "Sample fresh sushi, tamagoyaki, and street snacks at Tokyo's legendary market district."
+      }
+    ]
+  },
+  "message": "Destination retrieved successfully",
+  "error": null
+}
+```
+
+### Error responses
+
+| Status | Condition |
+|--------|-----------|
+| `404`  | No destination found with the given id |
+
+<CardGroup cols={2}>
+  <Card title="Add a Stop" icon="map-pin" href="/api/endpoints/stops">
+    Use the `destinationId` from this API to add a city stop to your trip itinerary.
+  </Card>
+  <Card title="Schedule Activities" icon="ticket" href="/api/endpoints/stops#post-apitripsidstopsstopidactivities">
+    Use the `activityId` values returned here to schedule activities to a stop.
+  </Card>
+</CardGroup>
+
+<Accordion title="Activity categories reference">
+  GlobeTrotter activities are tagged with one of six categories used for filtering and icon display throughout the app:
+
+  | Category | Description |
+  |----------|-------------|
+  | `SIGHTSEEING` | Landmark visits, viewpoints, and scenic spots |
+  | `ADVENTURE` | Outdoor activities, sports, and physical experiences |
+  | `FOOD` | Restaurants, markets, food tours, and culinary experiences |
+  | `CULTURE` | Museums, temples, galleries, and historical sites |
+  | `RELAXATION` | Spas, beaches, parks, and leisurely pursuits |
+  | `NIGHTLIFE` | Bars, clubs, evening entertainment, and night tours |
+</Accordion>

@@ -1,0 +1,144 @@
+---
+title: "GlobeTrotter Project Structure Explained"
+sidebarTitle: "Project Structure"
+description: "Explore the GlobeTrotter codebase directory layout, understand what every major folder contains, and locate the key source files you need."
+---
+
+The GlobeTrotter application lives in the `globetrotter-app/` directory inside the repository root. This page explains the folder structure and the role of each major section so you can navigate the codebase quickly, understand where to add new functionality, and locate the files that govern authentication, data validation, and page routing.
+
+## Directory Tree
+
+```text
+globetrotter-app/
+├── prisma/               # Schema, migrations, seed data
+├── public/               # Static assets (logo, icons)
+├── src/
+│   ├── app/              # Next.js App Router pages and API routes
+│   │   ├── (auth)/       # Login and registration pages
+│   │   ├── admin/        # Admin analytics dashboard
+│   │   ├── api/          # REST API route handlers
+│   │   │   ├── auth/     # /api/auth/* endpoints
+│   │   │   ├── trips/    # /api/trips/* endpoints
+│   │   │   ├── destinations/ # /api/destinations/*
+│   │   │   ├── activities/   # /api/activities/*
+│   │   │   ├── admin/    # /api/admin/* endpoints
+│   │   │   └── public/   # /api/public/* endpoints
+│   │   ├── itinerary-builder/ # Builder UI page
+│   │   ├── itinerary-share/   # Share preview page
+│   │   ├── profile/      # User profile page
+│   │   └── p/[slug]/     # Public trip view (SSR/ISR)
+│   ├── components/
+│   │   ├── ui/           # Shared UI primitives
+│   │   ├── features/     # Feature-specific components
+│   │   │   ├── trips/    # Itinerary, budget, calendar, share
+│   │   │   └── profile/  # User profile screen
+│   │   └── charts/       # Recharts wrappers
+│   ├── lib/              # Shared utilities
+│   │   └── auth.ts       # NextAuth config + getCurrentUser helper
+│   ├── middleware.ts      # Route protection middleware
+│   └── validators/       # Zod request schemas
+├── .env.example          # Environment variable template
+├── next.config.js        # Next.js configuration
+├── tailwind.config.js    # Tailwind CSS configuration
+└── tsconfig.json         # TypeScript configuration
+```
+
+## Folder Descriptions
+
+<CardGroup cols={2}>
+  <Card title="prisma/" icon="database">
+    Contains `schema.prisma` (the single source of truth for your database
+    models), auto-generated SQL migrations under `migrations/`, and
+    `seed.ts` — the script that populates the database with destinations,
+    activities, and demo accounts.
+  </Card>
+  <Card title="src/app/" icon="layout-grid">
+    The Next.js App Router root. Every folder here maps to a URL segment.
+    API route handlers live under `src/app/api/`, and all interactive pages
+    (builder, profile, admin) sit alongside them as React Server Components
+    or Client Component pages.
+  </Card>
+  <Card title="src/components/" icon="layers">
+    Split into three sub-trees: `ui/` for low-level primitives shared across
+    the whole app, `features/` for domain-specific widgets (trips, profile),
+    and `charts/` for Recharts-powered budget visualizations.
+  </Card>
+  <Card title="src/lib/" icon="wrench">
+    Utility modules and singletons. `auth.ts` exports `authOptions` for
+    NextAuth and the `getCurrentUser` helper used by every API route handler
+    to resolve the active session.
+  </Card>
+  <Card title="src/middleware.ts" icon="shield">
+    Next.js edge middleware that checks the `gt_session` cookie before
+    serving protected routes (`/itinerary-builder`, `/profile`, `/admin`).
+    Unauthenticated requests are redirected to `/login`.
+  </Card>
+  <Card title="src/validators/" icon="check-circle">
+    Zod schemas for all incoming API request bodies. `trip.schema.ts` exports
+    `createTripSchema`, `updateTripSchema`, and `stopUpdateSchema`, providing
+    both runtime validation and inferred TypeScript types.
+  </Card>
+</CardGroup>
+
+## Key Files Reference
+
+| File | Purpose |
+|---|---|
+| `src/lib/auth.ts` | NextAuth options, Google OAuth provider, credentials provider, and the `getCurrentUser` helper that extracts the active session from request cookies |
+| `src/middleware.ts` | Route guard — checks the `gt_session` cookie and redirects unauthenticated users away from protected pages |
+| `src/validators/trip.schema.ts` | Zod schemas for trip creation (`createTripSchema`), trip updates (`updateTripSchema`), and stop updates (`stopUpdateSchema`) |
+| `prisma/schema.prisma` | Prisma database schema — the canonical definition of every model and relation |
+| `prisma/seed.ts` | Database seed script with global destinations, activities, realistic cost data, sample multi-city trips, and the two demo accounts |
+| `src/components/features/trips/ItineraryBuilder.tsx` | Main itinerary builder UI component — renders the multi-stop timeline and drag-and-drop stop management interface |
+| `src/components/features/trips/BudgetEngine.tsx` | Budget calculation and Recharts chart display component — shows category breakdowns, daily burn rate, and over-budget alerts |
+| `src/components/features/trips/CalendarScreen.tsx` | Calendar timeline view that maps each trip stop across a monthly grid |
+| `src/components/features/trips/ItineraryShare.tsx` | Public sharing UI — renders the read-only itinerary preview and the one-click clone button |
+| `src/app/admin/page.tsx` | Admin analytics dashboard page — displays platform-wide metrics on users, trips, and popular destinations (ADMIN role required) |
+
+## App Router Page Map
+
+<Tabs>
+  <Tab title="Protected Pages">
+    These routes require an active session. The edge middleware in
+    `src/middleware.ts` enforces the `gt_session` cookie check and redirects
+    to `/login` if the cookie is absent.
+
+    | URL | File | Description |
+    |---|---|---|
+    | `/itinerary-builder` | `src/app/itinerary-builder/page.tsx` | Multi-city itinerary builder |
+    | `/itinerary-share` | `src/app/itinerary-share/page.tsx` | Share management page |
+    | `/profile` | `src/app/profile/page.tsx` | User profile and saved destinations |
+    | `/admin` | `src/app/admin/page.tsx` | Admin analytics dashboard |
+  </Tab>
+  <Tab title="Public Pages">
+    These routes are accessible without authentication and are rendered via
+    SSR or ISR for fast initial load and SEO.
+
+    | URL | File | Description |
+    |---|---|---|
+    | `/` | `src/app/page.tsx` | Landing page |
+    | `/login` | `src/app/login/page.tsx` | Sign-in form |
+    | `/register` | `src/app/register/page.tsx` | Registration form |
+    | `/shared/[slug]` | `src/app/shared/[slug]/page.tsx` | Public trip view by vanity slug |
+  </Tab>
+  <Tab title="API Routes">
+    All API handlers live under `src/app/api/` and return the standard
+    `ApiResponse<T>` JSON envelope.
+
+    | Endpoint Prefix | Handler Location | Scope |
+    |---|---|---|
+    | `/api/auth/me` | `src/app/api/auth/me/route.ts` | Authenticated user |
+    | `/api/trips` | `src/app/api/trips/route.ts` | Authenticated user |
+    | `/api/destinations` | `src/app/api/destinations/` | All users |
+    | `/api/activities` | `src/app/api/activities/` | All users |
+    | `/api/admin` | `src/app/api/admin/` | ADMIN role only |
+    | `/api/public` | `src/app/api/public/` | Unauthenticated |
+  </Tab>
+</Tabs>
+
+<Note>
+  The actual public trip share URL in the deployed app uses the pattern
+  `/shared/[slug]` — for example, `/shared/14-day-europe-grand-tour`. The
+  `slug` is auto-generated from the trip title when you toggle a trip to
+  public.
+</Note>

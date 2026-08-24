@@ -1,0 +1,246 @@
+---
+title: "How to Contribute to GlobeTrotter"
+sidebarTitle: "Contributing"
+description: "Step-by-step guide to the Git workflow, feature development process, adding API endpoints, and commit message standards for GlobeTrotter."
+---
+
+GlobeTrotter welcomes contributions — from bug fixes and performance improvements to new destinations, activities, and full features. This guide walks you through the development workflow and the correct way to add new functionality so your changes integrate smoothly with the rest of the codebase.
+
+## Prerequisites
+
+Before contributing, make sure you have:
+
+<CardGroup cols={3}>
+  <Card title="Local setup complete" icon="circle-check">
+    GlobeTrotter runs locally with a connected PostgreSQL database and a
+    seeded dataset. Follow the [Local Setup](/local-setup) guide first.
+  </Card>
+  <Card title="Coding standards read" icon="book-open">
+    Familiarise yourself with the [Coding Standards](/development/coding-standards)
+    page — especially naming conventions and the API route handler pattern.
+  </Card>
+  <Card title="Project structure known" icon="folder-tree">
+    Review the [Project Structure](/development/project-structure) page so you
+    know where to create new files.
+  </Card>
+</CardGroup>
+
+## Git Workflow
+
+<Steps>
+  <Step title="Fork and clone the repository">
+    Fork the repository to your own GitHub account, then clone it locally:
+
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/GlobeTrotter.git
+    cd GlobeTrotter/globetrotter-app
+    npm install
+    ```
+  </Step>
+  <Step title="Create a feature branch">
+    Always branch off `develop`, never off `main`. Use the `feat/` prefix for
+    new features and `fix/` for bug fixes:
+
+    ```bash
+    # New feature
+    git checkout develop
+    git pull origin develop
+    git checkout -b feat/your-feature-name
+
+    # Bug fix
+    git checkout -b fix/your-bug-description
+    ```
+  </Step>
+  <Step title="Make your changes">
+    Implement your changes following the [Coding Standards](/development/coding-standards).
+    Keep commits small and focused — one logical change per commit makes
+    reviews faster and reverts cleaner.
+  </Step>
+  <Step title="Run lint and build">
+    Both commands must pass with zero errors before you push:
+
+    ```bash
+    npm run lint    # Must report 0 errors
+    npm run build   # TypeScript must compile cleanly
+    ```
+  </Step>
+  <Step title="Commit using Conventional Commits">
+    Format every commit message as `<type>(<scope>): <subject>`. See the
+    commit types table below for guidance.
+  </Step>
+  <Step title="Open a pull request against develop">
+    Push your branch and open a pull request targeting the `develop` branch
+    (not `main`). Fill in the PR description with what changed and why, and
+    reference any related issue numbers.
+
+    ```bash
+    git push origin feat/your-feature-name
+    ```
+  </Step>
+</Steps>
+
+## Branch Strategy
+
+| Branch | Purpose |
+|---|---|
+| `main` | Production-ready code — always deployable |
+| `develop` | Integration branch — all PRs target here |
+| `feat/<name>` | New feature work (e.g., `feat/itinerary-builder`) |
+| `fix/<name>` | Bug fixes (e.g., `fix/date-picker-timezone`) |
+
+## Conventional Commits
+
+GlobeTrotter uses the [Conventional Commits](https://www.conventionalcommits.org/) format. This makes the git log scannable and enables automated changelog generation.
+
+| Type | When to Use | Example |
+|---|---|---|
+| `feat` | New feature | `feat(itinerary): add drag-and-drop stop reordering` |
+| `fix` | Bug fix | `fix(auth): prevent duplicate email registration` |
+| `style` | UI / visual changes only | `style(dashboard): improve mobile responsiveness` |
+| `docs` | Documentation changes | `docs(readme): add architecture diagram` |
+| `seed` | Seed data changes | `seed(db): add 5 new Asian destinations` |
+| `refactor` | Code restructure — no behavior change | `refactor(budget): extract cost helpers to lib` |
+| `chore` | Tooling, config, dependency updates | `chore(deps): upgrade prisma to 5.x` |
+
+<Tip>
+  Keep the subject line under 72 characters and write it in the imperative
+  mood — "add drag-and-drop" not "added drag-and-drop" or "adds drag-and-drop".
+</Tip>
+
+## Adding a New Feature
+
+<Steps>
+  <Step title="Create the database migration">
+    If your feature requires new tables or columns, create a Prisma migration:
+
+    ```bash
+    npx prisma migrate dev --name your-feature-name
+    ```
+
+    Update `prisma/schema.prisma` with your new models, then regenerate the
+    Prisma client:
+
+    ```bash
+    npx prisma generate
+    ```
+  </Step>
+  <Step title="Add a Zod validation schema">
+    Create a new schema file in `src/validators/` or extend an existing one.
+    Export both the schema and its inferred TypeScript type:
+
+    ```typescript
+    // src/validators/expense.schema.ts
+    import { z } from 'zod';
+
+    export const createExpenseSchema = z.object({
+      title: z.string().min(1).max(150),
+      category: z.enum(['LODGING', 'TRANSPORT', 'ACTIVITIES', 'FOOD', 'MISC']),
+      amount: z.number().positive(),
+      currency: z.string().default('USD'),
+      expenseDate: z.string(),
+    });
+
+    export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
+    ```
+  </Step>
+  <Step title="Create the API route handler">
+    Add a new file at `src/app/api/your-resource/route.ts`. Follow the
+    authenticate → validate → query → respond pattern from the
+    [Coding Standards](/development/coding-standards) page.
+  </Step>
+  <Step title="Build the feature component">
+    Create the UI component in `src/components/features/`. Name it using the
+    PascalCase domain-prefix convention (e.g., `BudgetExpenseList.tsx`).
+    Keep the file under 150 lines; extract sub-components if needed.
+  </Step>
+  <Step title="Add the page">
+    Create the page file inside `src/app/`. If the route needs authentication,
+    confirm that `src/middleware.ts` covers its path pattern — or add the new
+    path to the `matcher` array:
+
+    ```typescript
+    // src/middleware.ts
+    export const config = {
+      matcher: [
+        '/itinerary-builder/:path*',
+        '/profile/:path*',
+        '/admin/:path*',
+        '/your-new-route/:path*', // add here
+      ],
+    };
+    ```
+  </Step>
+  <Step title="Update the navigation">
+    Add a navigation entry for your new page in `src/components/layout/` so
+    users can reach it from the sidebar or top navigation bar.
+  </Step>
+</Steps>
+
+## Adding an API Endpoint
+
+Follow these steps whenever you add a new REST endpoint:
+
+<Steps>
+  <Step title="Create the route file">
+    Create `src/app/api/your-resource/route.ts`. Export one function per HTTP
+    method (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`).
+  </Step>
+  <Step title="Authenticate the request">
+    Call `getCurrentUser(req)` from `src/lib/auth` at the top of every handler.
+    Return `401` immediately if the result is `null`:
+
+    ```typescript
+    const user = await getCurrentUser(req);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, data: null, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    ```
+  </Step>
+  <Step title="Validate the request body with Zod">
+    Use `.safeParse()` rather than `.parse()` so you can return a structured
+    `400` response instead of throwing an uncaught error:
+
+    ```typescript
+    const parsed = yourSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, data: null, error: parsed.error.errors[0].message },
+        { status: 400 }
+      );
+    }
+    ```
+  </Step>
+  <Step title="Run the Prisma operation">
+    Use the Prisma client from `src/lib/prisma.ts`. For multi-table writes,
+    wrap everything in `prisma.$transaction()`.
+  </Step>
+  <Step title="Return the standard ApiResponse envelope">
+    Always return `{ success, data, message?, error? }`. Match the HTTP status
+    code to the outcome (201 for creation, 200 for reads/updates, etc.).
+  </Step>
+</Steps>
+
+<Tip>
+  Avoid N+1 queries — use Prisma `include` or `select` to fetch nested
+  relationships in a single query. For example, when returning a trip with
+  its stops and activities, pass a single `include` tree rather than
+  issuing separate queries per stop inside a loop.
+</Tip>
+
+## Seed Data Contributions
+
+Adding new destinations or activities is one of the highest-impact contributions. All seed data lives in `prisma/seed.ts`. When adding entries:
+
+- Use realistic `avgDailyCost` values for the destination's currency.
+- Include `latitude` and `longitude` so the Leaflet map renders the pin correctly.
+- Add at least three activities per new destination, spanning different `category` values (`SIGHTSEEING`, `FOOD`, `CULTURE`, etc.).
+- Use the commit type `seed(db):` for these changes.
+
+<Warning>
+  Never hard-code UUIDs in seed data. Let the database generate them with
+  `uuid_generate_v4()` or rely on Prisma's default `cuid()` / `uuid()`
+  generators so the seed script remains idempotent across environments.
+</Warning>

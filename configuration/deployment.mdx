@@ -1,0 +1,85 @@
+---
+title: "Deploy GlobeTrotter to Production"
+sidebarTitle: "Deployment"
+description: "Build GlobeTrotter for production and deploy to Vercel with a Supabase or Neon managed PostgreSQL database and cloud environment variables."
+---
+
+The recommended production stack for GlobeTrotter is **Vercel** for Next.js hosting paired with **Supabase** or **Neon** for managed PostgreSQL. This combination gives you zero-config Next.js deployment, auto-scaled serverless API routes, and a managed database with built-in connection pooling — all available on free tiers for development and small production loads.
+
+## Production Build
+
+Before deploying, verify that your app builds without errors locally:
+
+```bash
+cd globetrotter-app
+npm run build
+npm start
+```
+
+Visit `http://localhost:3000` to confirm the production build runs correctly against your database before pushing to Vercel.
+
+## Deploy on Vercel
+
+<Steps>
+  <Step title="Push your code to GitHub">
+    Commit all changes and push your repository to GitHub (or GitLab / Bitbucket). Vercel connects directly to your Git provider to pull and build your code.
+  </Step>
+  <Step title="Import your repository on Vercel">
+    Go to [vercel.com/new](https://vercel.com/new), sign in, and click **Import** next to your GlobeTrotter repository.
+  </Step>
+  <Step title="Set the root directory">
+    In the project configuration screen, set the **Root Directory** field to `globetrotter-app`. This tells Vercel where your Next.js app lives within the monorepo.
+  </Step>
+  <Step title="Add environment variables">
+    Expand the **Environment Variables** section and add each of the following before clicking Deploy:
+
+    | Variable | Production Value |
+    |---|---|
+    | `NEXTAUTH_URL` | Your Vercel deployment URL (e.g., `https://globetrotter.vercel.app`) |
+    | `DATABASE_URL` | Supabase or Neon connection string |
+    | `NEXTAUTH_SECRET` | Randomly generated 32+ character secret |
+    | `GOOGLE_CLIENT_ID` | *(Optional)* Google OAuth client ID |
+    | `GOOGLE_CLIENT_SECRET` | *(Optional)* Google OAuth client secret |
+  </Step>
+  <Step title="Click Deploy">
+    Click the **Deploy** button. Vercel installs dependencies, runs `next build`, and deploys your app to a global CDN. The first build typically takes 2–3 minutes.
+  </Step>
+  <Step title="Run production migrations">
+    After the first deploy succeeds, run migrations against your production database from your local machine. Set `DATABASE_URL` to the production connection string in your environment, then run:
+
+    ```bash
+    npx prisma migrate deploy
+    ```
+
+    Unlike `migrate dev`, `migrate deploy` applies existing migration files without generating new ones — safe for production use.
+  </Step>
+  <Step title="Seed initial data">
+    Run the seed script once to populate destinations, activities, and demo accounts in your production database:
+
+    ```bash
+    npx prisma db seed
+    ```
+
+    Only run this once. Running it multiple times against the same database will create duplicate records.
+  </Step>
+</Steps>
+
+## Performance Targets
+
+GlobeTrotter is designed to meet the following non-functional performance benchmarks in production:
+
+| Metric | Target |
+|---|---|
+| LCP (Largest Contentful Paint) | < 1.5 seconds on 4G |
+| API Response Time | < 200ms at P95 |
+| Browser Support | Chrome ≥ 110, Firefox ≥ 110, Safari ≥ 16, Edge ≥ 110 |
+
+Monitor Core Web Vitals in the Vercel dashboard under **Analytics** to track LCP and other metrics against these targets after launch.
+
+<Warning>
+  Set `NEXTAUTH_URL` to your exact production domain — including the protocol and without a trailing slash. If this value mismatches the domain your users actually visit, OAuth redirects will break and session cookies will not be set correctly.
+</Warning>
+
+<Tip>
+  Supabase and Neon both offer free tiers with sufficient compute and storage for development and small production workloads. You can upgrade to a paid plan as traffic grows without changing your connection string format.
+</Tip>

@@ -1,0 +1,52 @@
+---
+title: "GlobeTrotter Environment Variables Reference"
+sidebarTitle: "Environment Variables"
+description: "A complete reference of all required and optional environment variables needed to configure and run GlobeTrotter locally or in production."
+---
+
+GlobeTrotter is configured entirely via environment variables. Create a `.env.local` file in the `globetrotter-app/` directory — copy from `.env.example` as your starting point — and set the values described below before running the development server or building for production.
+
+## Required Variables
+
+These variables must be present at runtime. GlobeTrotter will not start correctly without them.
+
+| Variable | Description | Example |
+|---|---|---|
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/globetrotter` |
+| `NEXTAUTH_SECRET` | Random secret for signing sessions (minimum 32 characters) | Generate with: `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | The public base URL of your app | `http://localhost:3000` |
+
+## Optional Variables
+
+Omitting these variables disables the corresponding feature rather than causing an error.
+
+| Variable | Description | Default |
+|---|---|---|
+| `GOOGLE_CLIENT_ID` | Google OAuth application client ID | — (Google sign-in disabled if absent) |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth application client secret | — |
+
+## Generating `NEXTAUTH_SECRET`
+
+Run the following command in your terminal to generate a cryptographically secure secret. Copy the output and paste it as the value of `NEXTAUTH_SECRET`.
+
+```bash
+openssl rand -base64 32
+```
+
+## Example `.env.local`
+
+```bash .env.local
+DATABASE_URL="postgresql://postgres:password@localhost:5432/globetrotter"
+NEXTAUTH_SECRET="your-random-secret-here"
+NEXTAUTH_URL="http://localhost:3000"
+GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+```
+
+<Warning>
+  Never commit `.env.local` to version control. It contains sensitive credentials. The file is already listed in `.gitignore` — do not remove it from there.
+</Warning>
+
+<Note>
+  For production deployments on Vercel, set these variables in the Vercel dashboard under **Project → Settings → Environment Variables** rather than in a file. Vercel injects them into your build and runtime environment automatically.
+</Note>

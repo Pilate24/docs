@@ -1,0 +1,239 @@
+---
+title: "Run GlobeTrotter Locally for Development"
+sidebarTitle: "Local Setup"
+description: "Clone the GlobeTrotter repository, configure environment variables, run Prisma migrations, seed demo data, and start the Next.js dev server in minutes."
+---
+
+GlobeTrotter is an open Next.js application, and running it locally gives you a full-fidelity development environment — the same database schema, seed data, and demo accounts used in production. This guide covers everything you need to go from a fresh machine to a running local instance, including prerequisites, environment configuration, database setup, and the seed script that populates destinations, activities, and demo users.
+
+<Warning>
+  Google OAuth requires valid `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` values registered in Google Cloud Console. For local development you can skip Google entirely and use the **credentials-only login** (email + password). The demo accounts — `user@globetrotter.com` and `admin@globetrotter.com` — work without any OAuth configuration.
+</Warning>
+
+<Steps>
+  <Step title="Install Prerequisites">
+    Make sure the following tools are installed and available on your `PATH` before continuing.
+
+    | Tool | Minimum Version | Notes |
+    |---|---|---|
+    | **Node.js** | 18.x LTS or later | Use [nvm](https://github.com/nvm-sh/nvm) or [fnm](https://github.com/Schniz/fnm) for easy version management |
+    | **npm** | Ships with Node.js 18 | `npm -v` should return `9.x` or later |
+    | **PostgreSQL** | 15.x or later | Run locally via a native install or Docker (see below) |
+    | **Git** | Any recent version | Required to clone the repository |
+
+    <Tabs>
+      <Tab title="Local PostgreSQL">
+        Install PostgreSQL 15+ from [postgresql.org/download](https://www.postgresql.org/download/) for your OS. Once installed, create a database for the project:
+
+        ```bash
+        psql -U postgres
+        CREATE DATABASE globetrotter;
+        \q
+        ```
+
+        Your `DATABASE_URL` will be:
+        ```
+        postgresql://postgres:<your-password>@localhost:5432/globetrotter
+        ```
+      </Tab>
+      <Tab title="Docker">
+        If you have Docker installed, spin up a PostgreSQL container with a single command:
+
+        ```bash
+        docker run --name globetrotter-db \
+          -e POSTGRES_USER=postgres \
+          -e POSTGRES_PASSWORD=secret \
+          -e POSTGRES_DB=globetrotter \
+          -p 5432:5432 \
+          -d postgres:15
+        ```
+
+        Your `DATABASE_URL` will be:
+        ```
+        postgresql://postgres:secret@localhost:5432/globetrotter
+        ```
+      </Tab>
+      <Tab title="Cloud PostgreSQL">
+        Prefer a managed database? Both **Supabase** and **Neon** offer free-tier PostgreSQL instances that work with GlobeTrotter out of the box.
+
+        - [Supabase](https://supabase.com) — create a project and copy the connection string from **Settings → Database**.
+        - [Neon](https://neon.tech) — create a database and copy the pooled connection string.
+
+        Paste the connection string directly into `DATABASE_URL` in `.env.local`. No other configuration changes are needed.
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Clone the Repository and Install Dependencies">
+    Clone the GlobeTrotter repository from GitHub, navigate into the application directory, and install all Node.js dependencies.
+
+    ```bash
+    git clone https://github.com/Pilate24/GlobeTrotter.git
+    cd GlobeTrotter/globetrotter-app
+    npm install
+    ```
+
+    The `globetrotter-app` subdirectory contains the Next.js application. All subsequent commands in this guide should be run from inside that directory.
+
+    <Info>
+      The repository root contains architecture and feature documentation (`Feature.md`, `architecture.md`, etc.). The runnable Next.js app lives exclusively under `globetrotter-app/`.
+    </Info>
+  </Step>
+
+  <Step title="Configure Environment Variables">
+    Copy the example environment file to create your local configuration:
+
+    ```bash
+    cp .env.example .env.local
+    ```
+
+    Open `.env.local` in your editor and fill in the required values. The table below describes every variable.
+
+    | Variable | Required | Description |
+    |---|---|---|
+    | `DATABASE_URL` | **Yes** | PostgreSQL connection string (e.g. `postgresql://user:pass@localhost:5432/globetrotter`) |
+    | `NEXTAUTH_SECRET` | **Yes** | Random secret used to sign session tokens — minimum 32 characters. Generate one with `openssl rand -base64 32` |
+    | `NEXTAUTH_URL` | **Yes** | The canonical base URL of the app. Use `http://localhost:3000` for local development |
+    | `GOOGLE_CLIENT_ID` | Optional | Google OAuth 2.0 client ID from [Google Cloud Console](https://console.cloud.google.com/) |
+    | `GOOGLE_CLIENT_SECRET` | Optional | Google OAuth 2.0 client secret, paired with `GOOGLE_CLIENT_ID` |
+
+    A minimal `.env.local` for local development (credentials login only, no Google OAuth) looks like this:
+
+    ```bash
+    DATABASE_URL="postgresql://postgres:secret@localhost:5432/globetrotter"
+    NEXTAUTH_SECRET="replace-this-with-a-32-char-random-string-abc"
+    NEXTAUTH_URL="http://localhost:3000"
+    ```
+
+    <Warning>
+      Never commit `.env.local` to version control. It is listed in `.gitignore` by default, but double-check before pushing any branches. Exposing `NEXTAUTH_SECRET` or database credentials in a public repository is a security risk.
+    </Warning>
+  </Step>
+
+  <Step title="Set Up the Database">
+    Run Prisma migrations to create all tables, constraints, and indexes in your PostgreSQL database, then seed it with demo data.
+
+    ```bash
+    npx prisma migrate dev
+    npx prisma db seed
+    ```
+
+    **What the seed script creates:**
+
+    | Seeded data | Count | Details |
+    |---|---|---|
+    | Destinations | 20+ | Global cities across Europe, Asia, North America, South America, and Oceania — each with images, cost indices, average daily costs, and coordinates |
+    | Activities | 80+ | Curated per-destination activities spanning Sightseeing, Food & Dining, Adventure, Culture, and Nightlife categories |
+    | Demo user accounts | 2 | `user@globetrotter.com` (USER role) and `admin@globetrotter.com` (ADMIN role), both with password `password123` |
+
+    <Accordion title="Resetting the database">
+      To wipe all data and re-run migrations and seeds from scratch — useful if you have been experimenting — run:
+
+      ```bash
+      npx prisma migrate reset
+      ```
+
+      This command drops and recreates the database, re-applies all migrations, and re-runs the seed script. **All data you have created will be permanently deleted.**
+    </Accordion>
+
+    <Accordion title="Inspecting the schema in Prisma Studio">
+      Prisma Studio is a browser-based GUI for viewing and editing your database records during development:
+
+      ```bash
+      npx prisma studio
+      ```
+
+      It opens at `http://localhost:5555` by default and lets you browse every table — users, trips, destinations, activities, and more — without writing SQL.
+    </Accordion>
+  </Step>
+
+  <Step title="Start the Development Server">
+    With dependencies installed, environment configured, and the database seeded, start the Next.js development server:
+
+    ```bash
+    npm run dev
+    ```
+
+    The terminal will print:
+
+    ```
+    ▲ Next.js 16.x
+    - Local:   http://localhost:3000
+    - Network: http://192.168.x.x:3000
+
+    ✓ Ready in 2.3s
+    ```
+
+    Open [http://localhost:3000](http://localhost:3000) in your browser. You should see the GlobeTrotter sign-in page.
+
+    <Info>
+      Hot Module Replacement (HMR) is enabled by default. Any changes you make to source files under `src/` are reflected in the browser instantly without a full page reload.
+    </Info>
+  </Step>
+
+  <Step title="Log In with a Demo Account">
+    Use one of the two pre-seeded accounts to verify everything is working correctly.
+
+    <Tabs>
+      <Tab title="Demo Traveller">
+        ```
+        Email:    user@globetrotter.com
+        Password: password123
+        Role:     USER
+        ```
+
+        After login you land on `/dashboard`. The account has no trips by default — create your first one by clicking **+ Plan New Trip**.
+      </Tab>
+      <Tab title="Demo Admin">
+        ```
+        Email:    admin@globetrotter.com
+        Password: password123
+        Role:     ADMIN
+        ```
+
+        After login you have access to all traveller features plus the Admin Dashboard at `/admin`, which shows platform-wide metrics, trip audits, and destination analytics.
+      </Tab>
+    </Tabs>
+
+    <Tip>
+      On the sign-in page, click the **1-Click Demo Traveler Login** or **1-Click Admin Demo Login** buttons to fill in credentials automatically — no typing required.
+    </Tip>
+  </Step>
+</Steps>
+
+## Troubleshooting Common Issues
+
+<Accordion title="Prisma migration fails with 'connection refused'">
+  This means Prisma cannot reach PostgreSQL. Check that:
+
+  1. Your PostgreSQL server (or Docker container) is running: `pg_isready -h localhost -p 5432`
+  2. The `DATABASE_URL` in `.env.local` is correct — host, port, username, password, and database name all match your running instance.
+  3. If you are using Docker, ensure the container is started: `docker ps` should list `globetrotter-db`.
+</Accordion>
+
+<Accordion title="NextAuth error: 'NEXTAUTH_SECRET is not set'">
+  Open `.env.local` and confirm the `NEXTAUTH_SECRET` variable is present and has a value of at least 32 characters. Generate a secure value with:
+
+  ```bash
+  openssl rand -base64 32
+  ```
+
+  Paste the output as the value of `NEXTAUTH_SECRET` and restart the dev server.
+</Accordion>
+
+<Accordion title="Google sign-in returns 'OAuth client not found'">
+  Google OAuth is optional for local development. If you see this error, either:
+
+  - Supply valid `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` values from [Google Cloud Console](https://console.cloud.google.com/) with `http://localhost:3000/api/auth/callback/google` added as an authorised redirect URI.
+  - Or simply use the email/password login with the demo credentials — Google OAuth is not required to access any traveller features.
+</Accordion>
+
+<Accordion title="Port 3000 is already in use">
+  Another process is listening on port 3000. Either stop that process, or start GlobeTrotter on a different port:
+
+  ```bash
+  npm run dev -- -p 3001
+  ```
+
+  Remember to update `NEXTAUTH_URL` in `.env.local` to `http://localhost:3001` to match.
+</Accordion>

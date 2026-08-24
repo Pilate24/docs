@@ -1,72 +1,105 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "GlobeTrotter",
+  "theme": "luma",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#0080FF",
+    "light": "#E8F0FF",
+    "dark": "#1A1A2E"
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "pages": [
+    "tabs": [
       {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "local-setup"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/trips-and-stops",
+              "concepts/budget-engine",
+              "concepts/discovery",
+              "concepts/sharing"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/itinerary-builder",
+              "features/budget-tracking",
+              "features/city-discovery",
+              "features/activity-catalogue",
+              "features/calendar-timeline",
+              "features/public-sharing"
+            ]
+          },
+          {
+            "group": "Authentication",
+            "pages": [
+              "auth/overview",
+              "auth/credentials",
+              "auth/google-oauth",
+              "auth/demo-access"
+            ]
+          },
+          {
+            "group": "Configuration & Deployment",
+            "pages": [
+              "configuration/environment-variables",
+              "configuration/database-setup",
+              "configuration/deployment"
+            ]
+          },
+          {
+            "group": "Development Guide",
+            "pages": [
+              "development/project-structure",
+              "development/coding-standards",
+              "development/contributing",
+              "development/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview",
+              "api/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/endpoints/auth",
+              "api/endpoints/trips",
+              "api/endpoints/stops",
+              "api/endpoints/destinations",
+              "api/endpoints/activities",
+              "api/endpoints/budget",
+              "api/endpoints/public",
+              "api/endpoints/admin"
+            ]
+          }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
     ]
   },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/Pilate24/GlobeTrotter"
     }
   }
 }

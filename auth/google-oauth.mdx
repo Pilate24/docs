@@ -1,0 +1,78 @@
+---
+title: "Sign In with Google"
+sidebarTitle: "Google Sign-In"
+description: "Use your existing Google account to sign in to GlobeTrotter instantly — no separate password required, with automatic account linking for existing users."
+---
+
+GlobeTrotter supports Google OAuth as a first-class sign-in method. Click "Sign in with Google" on the login page, authorize the app to access your Google account, and you are signed in — no separate GlobeTrotter password is needed. Your account is automatically created on first use and linked to your Google identity on every subsequent sign-in.
+
+## Sign In with Google
+
+<Steps>
+  <Step title="Go to /login">
+    Open `/login` in your browser. You will see the standard credential form alongside OAuth options.
+  </Step>
+  <Step title="Click Sign in with Google">
+    Click the **Sign in with Google** button. GlobeTrotter will initiate the OAuth flow and redirect your browser to Google's authentication servers.
+  </Step>
+  <Step title="Complete Google's OAuth consent screen">
+    On Google's consent screen, select the Google account you want to use and review the permissions GlobeTrotter requests (typically your name and email address). Click **Continue** to grant access.
+  </Step>
+  <Step title="Grant permission">
+    Confirm the permission prompt. GlobeTrotter only reads your name and email — it does not access your Google Drive, Calendar, or any other Google services.
+  </Step>
+  <Step title="Return to GlobeTrotter">
+    Google redirects your browser back to GlobeTrotter. A secure `gt_session` cookie is issued and you are logged in automatically. First-time users land on `/dashboard` with a newly created USER account.
+  </Step>
+</Steps>
+
+## Account Linking
+
+Google sign-in automatically manages your GlobeTrotter account based on your email address:
+
+- **New Google users** — a GlobeTrotter account is created automatically using the name and email from your Google profile. You do not need to fill in a registration form.
+- **Returning Google users** — your existing GlobeTrotter account is looked up by email and the session is issued immediately.
+
+<Note>
+  If you previously registered a GlobeTrotter account using email/password with the **same email address** as your Google account, Google OAuth will link to that existing account. You can then sign in with either method — they resolve to the same profile, trips, and data.
+</Note>
+
+## Permissions Requested
+
+GlobeTrotter requests only the minimum scopes required to identify you:
+
+| Permission | Why It's Needed |
+|---|---|
+| `email` | Used as your unique account identifier |
+| `profile` (name, avatar) | Pre-fills your display name on account creation |
+
+GlobeTrotter does **not** request access to Gmail, Google Drive, Google Calendar, or any other Google product.
+
+## Troubleshooting
+
+<Accordion title="The Sign in with Google button is not visible">
+  The Google OAuth button only appears when the platform has valid Google OAuth credentials configured. If the button is absent, the deployment you are using may be running without Google OAuth enabled.
+
+  <Info>
+    If the "Sign in with Google" button is not visible, the platform may be running in a configuration without Google OAuth enabled. Use email/password credentials or [demo access](/auth/demo-access) to sign in instead.
+  </Info>
+</Accordion>
+
+<Accordion title="I get an error after the Google consent screen">
+  This usually means the OAuth callback URL is not correctly configured for this deployment. Contact the platform administrator, or try signing in with email/password.
+</Accordion>
+
+<Accordion title="My Google account signed in but my old trips are missing">
+  Check that the Google account email matches the email you used when you originally registered. If you signed up with a different address, your trips are attached to that other account.
+</Accordion>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Email & Password" icon="envelope" href="/auth/credentials">
+    Prefer to manage your own credentials? Register or sign in with email and password.
+  </Card>
+  <Card title="Demo Access" icon="bolt" href="/auth/demo-access">
+    Try GlobeTrotter instantly with a pre-seeded demo account — no sign-up required.
+  </Card>
+</CardGroup>

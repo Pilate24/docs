@@ -1,0 +1,123 @@
+---
+title: "Discovering Destinations and Activities"
+sidebarTitle: "Discovery"
+description: "Explore GlobeTrotter's curated catalogue of 20+ global destinations and 80+ activities — searchable, filterable, and instantly addable to any itinerary."
+---
+
+GlobeTrotter ships with a curated catalogue of 20+ global destinations and 80+ activities spanning 6 continents — all searchable and filterable directly from the UI without leaving your planning workflow. Whether you're researching your next adventure or filling out a stop with things to do, the Discovery section gives you the context you need: daily cost estimates, popularity scores, activity categories, and one-click "Add to Trip" shortcuts.
+
+## Destinations
+
+The destinations catalogue is your reference library of cities and regions available to add as stops. Each destination record carries structured metadata to help you compare and evaluate options before committing to a stop.
+
+### Destination Fields
+
+| Field | Description |
+|---|---|
+| `name` | City or region name (e.g., "Tokyo", "Medellín") |
+| `country` | Country the destination belongs to |
+| `continent` | One of: Africa, Asia, Europe, North America, South America, Oceania |
+| `costIndex` | A tiered cost rating: `BUDGET`, `MODERATE`, or `LUXURY` |
+| `popularityScore` | Integer from 1–10 indicating traveller demand |
+| `avgDailyCost` | Estimated average spend per day in the destination's local currency |
+| `latitude` / `longitude` | Coordinates used to pin the destination on the Leaflet map view |
+
+### Cost Index Reference
+
+The cost index gives you a quick signal for how affordable a destination is relative to global averages:
+
+| Cost Index | Typical Daily Spend | Example Cities |
+|---|---|---|
+| `BUDGET` | Under $80/day | Hanoi, Istanbul, Medellín |
+| `MODERATE` | $80–$200/day | Lisbon, Prague, Tokyo |
+| `LUXURY` | $200+/day | Paris, London, New York |
+
+### Filtering Destinations
+
+Use the faceted filter panel to narrow the catalogue to destinations that match your travel style:
+
+| Filter | Options |
+|---|---|
+| **Continent** | Africa, Asia, Europe, North America, South America, Oceania |
+| **Cost Index** | BUDGET, MODERATE, LUXURY |
+| **Popularity** | Top Rated (score 8+) |
+| **Search** | Full-text search by city name or country name |
+
+---
+
+## Activities
+
+The activities catalogue lets you discover and evaluate experiences at each destination. Every activity record comes with a cost estimate, duration, rating, and category tag, so you can build a realistic schedule before committing.
+
+### Activity Fields
+
+| Field | Description |
+|---|---|
+| `title` | Name of the activity (e.g., "Louvre Museum", "Street Food Tour") |
+| `category` | One of the six categories listed below |
+| `estimatedCost` | Typical per-person cost in USD |
+| `duration` | Expected duration in minutes |
+| `rating` | Average user rating (e.g., 4.8) |
+| `destination` | The city this activity belongs to |
+
+### Activity Categories
+
+<CardGroup cols={3}>
+  <Card title="Cultural" icon="landmark">
+    Museums, historical sites, galleries, and heritage attractions.
+  </Card>
+  <Card title="Outdoor" icon="tree">
+    Parks, hikes, nature reserves, and scenic viewpoints.
+  </Card>
+  <Card title="Culinary" icon="utensils">
+    Food tours, cooking classes, local market visits, and tastings.
+  </Card>
+  <Card title="Nightlife" icon="martini-glass">
+    Bars, clubs, rooftop lounges, and evening entertainment.
+  </Card>
+  <Card title="Shopping" icon="bag-shopping">
+    Local markets, boutiques, souvenir districts, and malls.
+  </Card>
+  <Card title="Wellness" icon="spa">
+    Spas, yoga retreats, hot springs, and mindfulness experiences.
+  </Card>
+  <Card title="Adventure" icon="person-hiking">
+    Extreme sports, rafting, skydiving, zip-lining, and similar.
+  </Card>
+</CardGroup>
+
+### Filtering Activities
+
+| Filter | Description |
+|---|---|
+| **Destination** | Show only activities belonging to a specific city |
+| **Category** | Filter by one of the seven activity categories |
+| **Price Range** | Maximum estimated cost (e.g., under $50) |
+| **Duration** | Maximum activity duration (e.g., under 3 hours) |
+
+---
+
+## Adding to Your Trip
+
+From any destination or activity card, click **"Add to Trip"** to open the itinerary builder with that city or activity pre-selected. You can choose which trip and which stop to assign it to, set dates, and adjust costs — all without leaving the Discovery view.
+
+<Steps>
+  <Step title="Browse the catalogue">
+    Use the search bar or filter panel to find a destination or activity that interests you.
+  </Step>
+  <Step title="Click Add to Trip">
+    On any catalogue card, click the **"Add to Trip"** button. The itinerary builder opens with the item pre-loaded.
+  </Step>
+  <Step title="Select your trip and stop">
+    Choose which trip to add the destination or activity to and confirm the stop dates or scheduled time.
+  </Step>
+  <Step title="Save and continue browsing">
+    Save the addition and return to the catalogue to keep exploring — your itinerary updates in the background via React Query.
+  </Step>
+</Steps>
+
+---
+
+<Info>
+The catalogue is curated and pre-seeded by the GlobeTrotter team. If you'd like a specific destination or activity added that isn't in the catalogue yet, contact your platform administrator — they can add new entries directly via the Admin Dashboard.
+</Info>

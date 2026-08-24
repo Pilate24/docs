@@ -1,0 +1,226 @@
+---
+title: "GlobeTrotter Coding Standards and Conventions"
+sidebarTitle: "Coding Standards"
+description: "TypeScript rules, naming conventions, API response patterns, and pre-commit quality checks every GlobeTrotter contributor must follow."
+---
+
+GlobeTrotter follows a strict set of engineering standards to keep the codebase consistent, type-safe, and maintainable across every layer of the stack — from database models and API route handlers to React components and Zod validation schemas. All contributors should understand and follow these conventions before submitting code.
+
+## Core Engineering Principles
+
+<Note>
+  Every pull request must uphold all five of these principles. Reviewers
+  will reject code that violates any of them.
+
+  1. **Strict TypeScript** — `strict: true` is set in `tsconfig.json`. Never use `any` types; every API response, database model, and component prop must carry an explicit interface or Zod-inferred type.
+  2. **Component modularity** — Keep components single-responsibility and under 150 lines. Move reusable UI primitives to `src/components/ui/` and feature-specific widgets to `src/components/features/`.
+  3. **Optimistic UI updates** — All user interactions (adding a stop, reordering activities, updating a budget field) must feel instant. Use TanStack React Query mutations with `onMutate` rollback or show crisp loading spinners.
+  4. **Resilient error boundaries** — No uncaught client-side crashes. Wrap dynamic views in React Error Boundaries and render friendly fallback screens for unexpected failures.
+  5. **ACID transactions for composite DB writes** — Never run multi-table mutations as disconnected queries. Use `prisma.$transaction()` for any operation that creates or modifies more than one related record (e.g., cloning a trip and all its stops).
+</Note>
+
+## Naming Conventions
+
+Consistent naming reduces cognitive overhead and makes cross-file searches reliable. Follow this table without exception:
+
+| Identifier | Convention | Example |
+|---|---|---|
+| React components | PascalCase | `ItineraryTimeline.tsx` |
+| Custom hooks | `use` prefix, camelCase | `useTripBudget.ts` |
+| Utility functions | camelCase | `calculateTotalCost.ts` |
+| TypeScript types / interfaces | PascalCase | `TripWithStops` |
+| Zod schemas | camelCase + `Schema` suffix | `createTripSchema` |
+| API endpoints | kebab-case, plural | `/api/trip-stops` |
+| DB tables | snake_case, plural | `trip_stops` |
+| DB columns | snake_case | `start_date` |
+
+<Tip>
+  When naming a new feature component, prefix it with the feature domain
+  (`Itinerary`, `Budget`, `Calendar`, `Admin`) so files group naturally in
+  the directory listing — for example, `BudgetDonutChart.tsx` or
+  `ItineraryStopCard.tsx`.
+</Tip>
+
+## API Response Standard
+
+Every route handler in `src/app/api/` must return responses that conform to the `ApiResponse<T>` envelope defined in `src/types/api.ts`. Never return raw data objects or ad-hoc shapes.
+
+```typescript
+// src/types/api.ts
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data: T | null;
+  message?: string;
+  error?: string | null;
+}
+```
+
+### HTTP Status Code Guidelines
+
+| Scenario | Status Code |
+|---|---|
+| Successful read | `200 OK` |
+| Resource created | `201 Created` |
+| Validation failure | `400 Bad Request` |
+| Unauthenticated | `401 Unauthorized` |
+| Wrong role / ownership | `403 Forbidden` |
+| Resource not found | `404 Not Found` |
+| Unexpected server error | `500 Internal Server Error` |
+
+## Route Handler Pattern
+
+All API route handlers follow a strict four-step structure: authenticate → validate → query → respond. Use this template as your starting point for every new endpoint:
+
+```typescript
+// src/app/api/trips/route.ts
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
+import { createTripSchema } from '@/validators/trip.schema';
+
+export async function POST(req: Request) {
+  try {
+    // 1. Authenticate
+    const user = await getCurrentUser(req);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, data: null, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // 2. Validate
+    const body = await req.json();
+    const parsed = createTripSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, data: null, error: parsed.error.errors[0].message },
+        { status: 400 }
+      );
+    }
+
+    // 3. DB operation
+    const trip = await prisma.trips.create({
+      data: { ...parsed.data, userId: user.id },
+    });
+
+    // 4. Return standard envelope
+    return NextResponse.json(
+      { success: true, data: trip, message: 'Trip created' },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('[TRIP_CREATE_ERROR]', error);
+    return NextResponse.json(
+      { success: false, data: null, error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+<Warning>
+  Never use `try/catch` to silently swallow errors without logging them.
+  Every `catch` block must call `console.error` with a bracketed log tag
+  (e.g., `[TRIP_CREATE_ERROR]`) so errors are easy to filter in production
+  logs.
+</Warning>
+
+## Database Best Practices
+
+### Avoid N+1 Queries
+
+Use Prisma `include` or `select` to fetch nested relationships in a single database round-trip:
+
+```typescript
+// ✅ One query — fetches trip, stops, destinations, and activities together
+const trip = await prisma.trips.findUnique({
+  where: { id: tripId },
+  include: {
+    stops: {
+      orderBy: { stopOrder: 'asc' },
+      include: {
+        destination: true,
+        activities: {
+          include: { activity: true },
+          orderBy: { scheduledDate: 'asc' },
+        },
+      },
+    },
+    expenses: true,
+  },
+});
+```
+
+### Use Transactions for Composite Mutations
+
+Wrap any operation that writes to more than one table in a `prisma.$transaction` call to guarantee atomicity:
+
+```typescript
+// ✅ Clone trip and all its stops atomically
+const clonedTrip = await prisma.$transaction(async (tx) => {
+  const newTrip = await tx.trips.create({ data: { /* ...fields */ } });
+
+  for (const stop of originalTrip.stops) {
+    await tx.trip_stops.create({
+      data: { ...stop, tripId: newTrip.id },
+    });
+  }
+
+  return newTrip;
+});
+```
+
+## Component Patterns
+
+### Client vs. Server Components
+
+| Component Type | Use When |
+|---|---|
+| React Server Component (default) | Read-only data display, no interactivity, SEO-critical content |
+| `'use client'` component | Needs `useState`, `useEffect`, event handlers, or browser APIs |
+| TanStack Query mutation | Any user action that writes data and needs optimistic updates |
+
+### Form Validation
+
+All forms must validate on both the client (using Zod + React Hook Form or controlled state) and the server (using `.safeParse()` in the route handler). Never rely on a single layer alone.
+
+```typescript
+// Client-side — validate before submitting
+const parsed = createTripSchema.safeParse(formValues);
+if (!parsed.success) {
+  setErrors(parsed.error.flatten().fieldErrors);
+  return;
+}
+```
+
+## Pre-Commit Checklist
+
+Run through this checklist before every commit or pull request:
+
+<Steps>
+  <Step title="Lint">
+    Run `npm run lint` and fix every error and warning before committing.
+    Zero lint issues is the acceptance threshold — warnings are not tolerated
+    in this project.
+  </Step>
+  <Step title="Build">
+    Run `npm run build` and verify TypeScript compiles cleanly with no type
+    errors. A red build must never be pushed to `develop` or `main`.
+  </Step>
+  <Step title="Responsive check">
+    Open the changed views in your browser at **375 px** (mobile) and
+    **1440 px** (desktop) and confirm the layout renders correctly at both
+    breakpoints.
+  </Step>
+  <Step title="Form validation">
+    Confirm all form inputs show proper validation messages when left blank or
+    filled with invalid data. Error states must be visible and accessible.
+  </Step>
+</Steps>
+
+<Info>
+  The project uses strict ESLint rules inherited from `eslint-config-next`.
+  Unused imports, implicit `any` types, and missing dependency arrays in
+  React hooks are all treated as errors, not warnings.
+</Info>

@@ -1,0 +1,138 @@
+{
+  "projectType": "saas",
+  "projectName": "GlobeTrotter",
+  "projectDescription": "A full-stack travel planning application that lets users build multi-city itineraries, track budgets, discover destinations and activities, and share trips publicly.",
+  "theme": "luma",
+  "primaryColor": "#0080FF",
+  "lightColor": "#E8F0FF",
+  "darkColor": "#1A1A2E",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "local-setup"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/trips-and-stops",
+              "concepts/budget-engine",
+              "concepts/discovery",
+              "concepts/sharing"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/itinerary-builder",
+              "features/budget-tracking",
+              "features/city-discovery",
+              "features/activity-catalogue",
+              "features/calendar-timeline",
+              "features/public-sharing"
+            ]
+          },
+          {
+            "group": "Authentication",
+            "pages": [
+              "auth/overview",
+              "auth/credentials",
+              "auth/google-oauth",
+              "auth/demo-access"
+            ]
+          },
+          {
+            "group": "Configuration & Deployment",
+            "pages": [
+              "configuration/environment-variables",
+              "configuration/database-setup",
+              "configuration/deployment"
+            ]
+          },
+          {
+            "group": "Development Guide",
+            "pages": [
+              "development/project-structure",
+              "development/coding-standards",
+              "development/contributing",
+              "development/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview",
+              "api/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/endpoints/auth",
+              "api/endpoints/trips",
+              "api/endpoints/stops",
+              "api/endpoints/destinations",
+              "api/endpoints/activities",
+              "api/endpoints/budget",
+              "api/endpoints/public",
+              "api/endpoints/admin"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Multi-city itinerary builder with drag-and-drop stop reordering",
+    "Automated budget engine with category breakdowns (Lodging, Transport, Activities, Food)",
+    "City discovery with full-text search and faceted filters (continent, cost index, popularity)",
+    "Activity catalogue with category filters and day-slot scheduling",
+    "Interactive trip calendar with monthly/weekly views and drag-to-reschedule",
+    "Public shareable itinerary URLs with one-click trip cloning",
+    "Structured itinerary view with Timeline, City Grouped, and Compact List modes",
+    "Real-time budget variance tracking with Recharts donut and bar charts",
+    "JWT/NextAuth session management with Google OAuth and demo credentials",
+    "RBAC with USER and ADMIN roles; admin analytics dashboard",
+    "Retro-futuristic (cyberpunk/vaporwave) design system with CRT scanlines and neon glow",
+    "Pre-seeded with 20+ global destinations and 80+ curated activities across 6 continents"
+  ],
+  "publicApiSurface": [
+    "GET /api/auth/me — Returns current authenticated user (id, email, name, role)",
+    "POST /api/auth/register — Create a new user account",
+    "POST /api/auth/login — Login with email/password credentials",
+    "POST /api/auth/demo-login — 1-click demo account access",
+    "POST /api/auth/logout — Terminate current session",
+    "GET /api/trips — List all trips for the authenticated user",
+    "POST /api/trips — Create a new trip",
+    "GET /api/trips/:id — Get a single trip by ID",
+    "PUT /api/trips/:id — Update a trip",
+    "DELETE /api/trips/:id — Delete a trip",
+    "PATCH /api/trips/:id/visibility — Toggle trip public/private visibility",
+    "POST /api/trips/:tripId/stops — Add a city stop to a trip",
+    "PUT /api/trips/:tripId/stops — Reorder stops",
+    "PUT /api/trips/:tripId/stops/:stopId — Update a specific stop",
+    "DELETE /api/trips/:tripId/stops/:stopId — Remove a stop",
+    "POST /api/trips/:tripId/stops/:stopId/activities — Schedule an activity to a stop",
+    "DELETE /api/trips/:tripId/stops/:stopId/activities/:id — Remove a scheduled activity",
+    "GET /api/destinations — Search/filter destinations",
+    "GET /api/destinations/:id — Get destination details with activities",
+    "GET /api/activities — Search/filter activities",
+    "GET /api/trips/:tripId/budget — Get budget breakdown for a trip",
+    "GET /api/public/trips/:slug — Get a public trip by slug (no auth required)",
+    "POST /api/public/trips/:slug/clone — Clone a public trip to the authenticated user's account",
+    "GET /api/admin/metrics — Admin KPI metrics (ADMIN role only)",
+    "GET /api/admin/trips — Paginated trips audit table (ADMIN role only)"
+  ]
+}

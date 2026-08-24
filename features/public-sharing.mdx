@@ -1,0 +1,97 @@
+---
+title: "Share and Clone Trip Itineraries with Public Links"
+sidebarTitle: "Public Sharing"
+description: "Publish any trip to a permanent public URL, share it across social platforms, and let anyone clone your full itinerary into their own account in one click."
+---
+
+GlobeTrotter's public sharing feature lets you publish any trip to a permanent public URL that anyone can view — and clone into their own account with a single click. Whether you want to inspire friends with your route, collaborate on a group trip, or build a travel library others can remix, public sharing makes your itinerary available to the world in seconds.
+
+## Publishing Your Trip
+
+<Steps>
+  <Step title="Open your trip from My Trips">
+    Navigate to **My Trips** and click the trip you want to publish. This opens the trip detail page with the full itinerary.
+  </Step>
+  <Step title='Flip the visibility toggle to "Public"'>
+    In the trip header, locate the visibility toggle showing **Private**. Click it to switch it to **Public**. A confirmation prompt appears — click **Confirm** to proceed.
+  </Step>
+  <Step title="Your trip is now live at its public URL">
+    GlobeTrotter immediately publishes your trip at:
+
+    ```text
+    https://globetrotter.app/p/{slug}
+    ```
+
+    The slug is auto-generated from your trip title when the trip is created (for example, `ultimate-japan-2026-a8f9`).
+  </Step>
+  <Step title="Copy the link or share via social buttons">
+    The **Share Tray** opens automatically after publishing. Copy the URL directly, or click one of the social share buttons to post it to your platform of choice.
+  </Step>
+</Steps>
+
+## What the Public Page Shows
+
+The public trip page is a fully rendered, read-only view of your itinerary. Visitors see:
+
+- Trip title, total date range, number of cities visited, and total estimated cost
+- All city stops with arrival and departure dates, transport mode to the next city, and accommodation cost
+- All scheduled activities per stop, including name, category, duration, and cost
+- An estimated budget breakdown summary showing spend across categories
+
+## The Public Page Is Read-Only
+
+Visitors can view every detail of your itinerary, but they cannot make any changes to your trip. There are no edit controls, form fields, or action buttons visible to anyone other than you.
+
+## Social Share Buttons
+
+The Share Tray includes one-click sharing for:
+
+<CardGroup cols={3}>
+  <Card title="Twitter / X" icon="x-twitter">
+    Posts a pre-filled tweet with your trip title and public URL.
+  </Card>
+  <Card title="Facebook" icon="facebook">
+    Opens the Facebook share dialog with a preview of your trip page.
+  </Card>
+  <Card title="WhatsApp" icon="whatsapp">
+    Opens a WhatsApp message pre-loaded with the trip link.
+  </Card>
+  <Card title="LinkedIn" icon="linkedin">
+    Shares the public URL as a LinkedIn post.
+  </Card>
+  <Card title="Copy Link" icon="link">
+    Copies the full public URL to your clipboard instantly.
+  </Card>
+</CardGroup>
+
+## Cloning a Trip
+
+Any logged-in GlobeTrotter user visiting a public trip page can clone your itinerary into their own account.
+
+<Steps>
+  <Step title='Click "Clone This Trip"'>
+    On the public trip page, click the **Clone This Trip** button in the page header.
+  </Step>
+  <Step title="GlobeTrotter creates a full independent copy">
+    GlobeTrotter performs a deep-copy of the entire trip in a single ACID transaction — all city stops, scheduled activities, and expense records are duplicated exactly as they appear in the original.
+  </Step>
+  <Step title="The clone appears in your My Trips as a DRAFT">
+    The cloned trip is saved to your account with a **DRAFT** status. The original trip's ID is recorded in the `cloned_from_trip_id` field for reference, but the clone is fully independent — you can edit, delete, or republish it without affecting the original.
+  </Step>
+</Steps>
+
+<Info>
+  Guests who are not signed in will see a prompt to create a GlobeTrotter account or log in before the clone is processed. Once authenticated, the clone completes automatically and they are redirected to the newly created trip.
+</Info>
+
+## Making a Trip Private Again
+
+To unpublish a trip, flip the visibility toggle back to **Private** in the trip header. The public URL returns a `404` immediately — no grace period, no cache delay.
+
+<Warning>
+  Cloning creates a fully independent copy of the trip. Any edits you make to the clone — adding stops, changing dates, updating costs — do not affect the original trip, and changes to the original do not propagate to existing clones.
+</Warning>
+
+<Tip>
+  Share your trip link before you leave home and let friends clone it to plan their own version of the same route. Each person gets a personal copy they can customise — different hotels, extra stops, adjusted budgets — without touching your itinerary.
+</Tip>
